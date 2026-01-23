@@ -6,7 +6,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/.qtc/package-manager/auto-setup.cmake"
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/.qtc/package-manager/auto-setup.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -20,7 +20,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeSystem.cmake"
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/CMakeFiles/3.30.5/CMakeSystem.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -29,7 +29,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/.qtc/package-manager/maintenance_tool_provider.cmake"
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/.qtc/package-manager/maintenance_tool_provider.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -293,7 +293,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake"
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -367,7 +367,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeRCCompiler.cmake"
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/CMakeFiles/3.30.5/CMakeRCCompiler.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -451,7 +451,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake"
+			"path" : "build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -4310,7 +4310,7 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug",
+		"build" : "C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Release",
 		"source" : "C:/Users/User/Desktop/1/sunSensers"
 	},
 	"version" : 

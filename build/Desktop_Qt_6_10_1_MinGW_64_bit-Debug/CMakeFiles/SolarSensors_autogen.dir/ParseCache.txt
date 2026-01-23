@@ -398,5 +398,5 @@ C:/Users/User/Desktop/1/sunSensers/sensormodel.h
  mdp:C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h
  mdp:C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/SolarSensors_autogen/moc_predefs.h
  mdp:C:/Users/User/Desktop/1/sunSensers/sensormodel.h
-C:/Users/User/Desktop/1/sunSensers/sensormodel.cpp
 C:/Users/User/Desktop/1/sunSensers/main.cpp
+C:/Users/User/Desktop/1/sunSensers/sensormodel.cpp

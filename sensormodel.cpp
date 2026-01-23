@@ -9,7 +9,8 @@
 #include <QDir>
 #include <QtMath>
 #include <QFileInfo>
-#include <QDateTime> // !!! ВАЖНО ДЛЯ ЭКСПОРТА JSON
+#include <QDateTime>
+#include <QCoreApplication>
 
 SensorModel::SensorModel(QObject *parent) : QAbstractListModel(parent) {}
 
@@ -245,11 +246,39 @@ bool SensorModel::parseJsonInternal(const QString &jsonFilePath) {
 void SensorModel::importFromTxt(const QString &fileUrl) {
     QString txtPath = QUrl(fileUrl).toLocalFile();
     if (txtPath.isEmpty()) txtPath = fileUrl;
-    QFileInfo fi(txtPath);
-    QString jsonPath = fi.absolutePath() + "/" + fi.baseName() + ".json";
 
-    if (convertTxtToJson(txtPath, jsonPath)) {
-        parseJsonInternal(jsonPath);
+    QFileInfo fi(txtPath);
+
+    // 1. Создаем временный файл для первичного парсинга (в папке с исходником)
+
+    QString tempJsonPath = fi.absolutePath() + "/" + fi.baseName() + "_temp_parsing.json";
+
+    qInfo() << "Step 1: Converting TXT to Temp JSON...";
+
+    if (convertTxtToJson(txtPath, tempJsonPath)) {
+        // 2. Загружаем данные в модель
+        if (parseJsonInternal(tempJsonPath)) {
+            qInfo() << "Step 2: Data loaded & Math calculated.";
+
+
+            // Получаем путь к папке
+            QString exeDir = QCoreApplication::applicationDirPath();
+
+            // имя файла
+            QString finalJsonName = fi.baseName() + ".json";
+            QString finalJsonPath = QDir(exeDir).filePath(finalJsonName);
+
+            qInfo() << "Step 3: Auto-generating Final JSON at:" << finalJsonPath;
+
+
+            exportToJson(finalJsonPath);
+
+            QFile::remove(tempJsonPath);
+        } else {
+            qWarning() << "Failed to parse generated temp JSON.";
+        }
+    } else {
+        qWarning() << "Failed to convert TXT to JSON.";
     }
 }
 
@@ -336,20 +365,84 @@ void SensorModel::preCalculateCalibration() {
 }
 
 void SensorModel::exportToCsv(const QString &fileUrl) {
+    // 1. Превращаем QML URL в локальный путь
     QString path = QUrl(fileUrl).toLocalFile();
     if (path.isEmpty()) path = fileUrl;
     if (!path.endsWith(".csv", Qt::CaseInsensitive)) path += ".csv";
-    QFile f(path);
-    if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&f);
-        out << "SensorID,SensorName,Time,Raw_A,Raw_B,Corr_A,Corr_B\n";
+
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "Не удалось открыть файл для записи:" << path;
+        return;
+    }
+
+    QTextStream out(&file);
+    // Устанавливаем кодировку UTF-8 и BOM для корректного открытия в Excel
+    out.setGenerateByteOrderMark(true);
+
+    if (m_sensors.isEmpty()) {
+        file.close();
+        return;
+    }
+
+    // 2. Создаем заголовок таблицы
+    // Чтобы соответствовать JSON, выводим и сырые, и скорректированные данные
+    QStringList header;
+    header << "Time (s)";
+
+    for (const Sensor &s : m_sensors) {
+        // Добавляем информацию о коэффициентах в заголовок (опционально, для удобства)
+        QString prefix = s.name; // Например "Sensor 1"
+
+        header << (prefix + " Raw A")
+               << (prefix + " Raw B")
+               << (prefix + " Corr A (x" + QString::number(s.kA, 'f', 3) + ")")
+               << (prefix + " Corr B (x" + QString::number(s.kB, 'f', 3) + ")");
+    }
+
+    // Используем ';' как разделитель (стандарт для Excel в РФ/Европе)
+    out << header.join(";") << "\n";
+
+    // 3. Собираем данные
+    // Находим максимальное количество строк (на случай рассинхрона датчиков)
+    int maxRows = 0;
+    for(const auto& s : m_sensors) {
+        if(s.data.size() > maxRows) maxRows = s.data.size();
+    }
+
+    for (int i = 0; i < maxRows; ++i) {
+        QStringList row;
+
+        // Берем время из первого датчика (или 0, если данных нет)
+        double timeVal = 0.0;
+        if (!m_sensors.isEmpty() && i < m_sensors[0].data.size()) {
+            timeVal = m_sensors[0].data[i].time;
+        }
+
+        // Записываем время (заменяем точку на запятую для Excel, если нужно, но пока оставим стандарт)
+        row << QString::number(timeVal, 'f', 3);
+
         for (const Sensor &s : m_sensors) {
-            for (const DataPoint &d : s.data) {
-                out << s.id << "," << s.name << "," << QString::number(d.time, 'f', 3) << ","
-                    << d.v1 << "," << d.v2 << "," << d.v1_corr << "," << d.v2_corr << "\n";
+            if (i < s.data.size()) {
+                const DataPoint &p = s.data[i];
+
+                // Сырые данные (как в JSON "raw_A", "raw_B")
+                row << QString::number(p.v1, 'f', 0); // Обычно сырые - целые числа
+                row << QString::number(p.v2, 'f', 0);
+
+                // Скорректированные данные (как в JSON "corr_A", "corr_B")
+                row << QString::number(p.v1_corr, 'f', 2);
+                row << QString::number(p.v2_corr, 'f', 2);
+            } else {
+                // Если данные у этого датчика кончились раньше
+                row << "" << "" << "" << "";
             }
         }
+        out << row.join(";") << "\n";
     }
+
+    file.close();
+    qInfo() << "Full CSV Export completed:" << path;
 }
 
 // СТАТИСТИКА (С расчет погрешности pA, pB)
