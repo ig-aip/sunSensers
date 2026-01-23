@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(sunSensorAnalyze LANGUAGES CXX)
+project(SolarSensors LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. Добавляем QuickWidgets сюда
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick Charts QuickWidgets)
+# QuickDialogs2 нужен для FileDialog
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick Charts QuickWidgets QuickControls2)
 
 qt_standard_project_setup()
 
@@ -18,7 +18,6 @@ set(SOURCES
 
 add_executable(SolarSensors ${SOURCES})
 
-# 2. И добавляем Qt6::QuickWidgets сюда
 target_link_libraries(SolarSensors PRIVATE
     Qt6::Core
     Qt6::Gui
@@ -26,7 +25,8 @@ target_link_libraries(SolarSensors PRIVATE
     Qt6::Quick
     Qt6::Charts
     Qt6::QuickWidgets
+    Qt6::QuickControls2
 )
 
-# Копирование ресурсов
+# Копируем Main.qml и results.txt в папку сборки
 file(COPY Main.qml results.txt DESTINATION ${CMAKE_BINARY_DIR})

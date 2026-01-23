@@ -1,3 +1,749 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+CMakeLists.txt
+CMakeLists.txt.user
+converttojson.cpp
+converttojson.h
+main.cpp
+main.qml
+mainwindow.cpp
+mainwindow.h
+mainwindow.ui
+reportgenerator.cpp
+reportgenerator.h
+results.txt
+sensormanager.cpp
+sensormanager.h
+sensormodel.cpp
+sensormodel.h
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="CMakeLists.txt">
+cmake_minimum_required(VERSION 3.16)
+
+project(SolarSensors LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# QuickDialogs2 нужен для FileDialog
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick Charts QuickWidgets QuickControls2)
+
+qt_standard_project_setup()
+
+set(SOURCES
+    main.cpp
+    sensormodel.cpp
+    sensormodel.h
+)
+
+add_executable(SolarSensors ${SOURCES})
+
+target_link_libraries(SolarSensors PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Quick
+    Qt6::Charts
+    Qt6::QuickWidgets
+    Qt6::QuickControls2
+)
+
+# Копируем Main.qml и results.txt в папку сборки
+file(COPY Main.qml results.txt DESTINATION ${CMAKE_BINARY_DIR})
+</file>
+
+<file path="CMakeLists.txt.user">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE QtCreatorProject>
+<!-- Written by QtCreator 16.0.1, 2026-01-23T02:24:28. -->
+<qtcreator>
+ <data>
+  <variable>EnvironmentId</variable>
+  <value type="QByteArray">{0d3577fe-55a2-422c-b034-c238e343ea69}</value>
+ </data>
+ <data>
+  <variable>ProjectExplorer.Project.ActiveTarget</variable>
+  <value type="qlonglong">0</value>
+ </data>
+ <data>
+  <variable>ProjectExplorer.Project.EditorSettings</variable>
+  <valuemap type="QVariantMap">
+   <value type="bool" key="EditorConfiguration.AutoDetect">true</value>
+   <value type="bool" key="EditorConfiguration.AutoIndent">true</value>
+   <value type="bool" key="EditorConfiguration.CamelCaseNavigation">true</value>
+   <valuemap type="QVariantMap" key="EditorConfiguration.CodeStyle.0">
+    <value type="QString" key="language">Cpp</value>
+    <valuemap type="QVariantMap" key="value">
+     <value type="QByteArray" key="CurrentPreferences">CppGlobal</value>
+    </valuemap>
+   </valuemap>
+   <valuemap type="QVariantMap" key="EditorConfiguration.CodeStyle.1">
+    <value type="QString" key="language">QmlJS</value>
+    <valuemap type="QVariantMap" key="value">
+     <value type="QByteArray" key="CurrentPreferences">QmlJSGlobal</value>
+    </valuemap>
+   </valuemap>
+   <value type="qlonglong" key="EditorConfiguration.CodeStyle.Count">2</value>
+   <value type="QByteArray" key="EditorConfiguration.Codec">UTF-8</value>
+   <value type="bool" key="EditorConfiguration.ConstrainTooltips">false</value>
+   <value type="int" key="EditorConfiguration.IndentSize">4</value>
+   <value type="bool" key="EditorConfiguration.KeyboardTooltips">false</value>
+   <value type="int" key="EditorConfiguration.LineEndingBehavior">0</value>
+   <value type="int" key="EditorConfiguration.MarginColumn">80</value>
+   <value type="bool" key="EditorConfiguration.MouseHiding">true</value>
+   <value type="bool" key="EditorConfiguration.MouseNavigation">true</value>
+   <value type="int" key="EditorConfiguration.PaddingMode">1</value>
+   <value type="int" key="EditorConfiguration.PreferAfterWhitespaceComments">0</value>
+   <value type="bool" key="EditorConfiguration.PreferSingleLineComments">false</value>
+   <value type="bool" key="EditorConfiguration.ScrollWheelZooming">true</value>
+   <value type="bool" key="EditorConfiguration.ShowMargin">false</value>
+   <value type="int" key="EditorConfiguration.SmartBackspaceBehavior">2</value>
+   <value type="bool" key="EditorConfiguration.SmartSelectionChanging">true</value>
+   <value type="bool" key="EditorConfiguration.SpacesForTabs">true</value>
+   <value type="int" key="EditorConfiguration.TabKeyBehavior">0</value>
+   <value type="int" key="EditorConfiguration.TabSize">8</value>
+   <value type="bool" key="EditorConfiguration.UseGlobal">true</value>
+   <value type="bool" key="EditorConfiguration.UseIndenter">false</value>
+   <value type="int" key="EditorConfiguration.Utf8BomBehavior">1</value>
+   <value type="bool" key="EditorConfiguration.addFinalNewLine">true</value>
+   <value type="bool" key="EditorConfiguration.cleanIndentation">true</value>
+   <value type="bool" key="EditorConfiguration.cleanWhitespace">true</value>
+   <value type="QString" key="EditorConfiguration.ignoreFileTypes">*.md, *.MD, Makefile</value>
+   <value type="bool" key="EditorConfiguration.inEntireDocument">false</value>
+   <value type="bool" key="EditorConfiguration.skipTrailingWhitespace">true</value>
+   <value type="bool" key="EditorConfiguration.tintMarginArea">true</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>ProjectExplorer.Project.PluginSettings</variable>
+  <valuemap type="QVariantMap">
+   <valuemap type="QVariantMap" key="AutoTest.ActiveFrameworks">
+    <value type="bool" key="AutoTest.Framework.Boost">true</value>
+    <value type="bool" key="AutoTest.Framework.CTest">false</value>
+    <value type="bool" key="AutoTest.Framework.Catch">true</value>
+    <value type="bool" key="AutoTest.Framework.GTest">true</value>
+    <value type="bool" key="AutoTest.Framework.QtQuickTest">true</value>
+    <value type="bool" key="AutoTest.Framework.QtTest">true</value>
+   </valuemap>
+   <value type="bool" key="AutoTest.ApplyFilter">false</value>
+   <valuemap type="QVariantMap" key="AutoTest.CheckStates"/>
+   <valuelist type="QVariantList" key="AutoTest.PathFilters"/>
+   <value type="int" key="AutoTest.RunAfterBuild">0</value>
+   <value type="bool" key="AutoTest.UseGlobal">true</value>
+   <valuemap type="QVariantMap" key="ClangTools">
+    <value type="bool" key="ClangTools.AnalyzeOpenFiles">true</value>
+    <value type="bool" key="ClangTools.BuildBeforeAnalysis">true</value>
+    <value type="QString" key="ClangTools.DiagnosticConfig">Builtin.DefaultTidyAndClazy</value>
+    <value type="int" key="ClangTools.ParallelJobs">3</value>
+    <value type="bool" key="ClangTools.PreferConfigFile">true</value>
+    <valuelist type="QVariantList" key="ClangTools.SelectedDirs"/>
+    <valuelist type="QVariantList" key="ClangTools.SelectedFiles"/>
+    <valuelist type="QVariantList" key="ClangTools.SuppressedDiagnostics"/>
+    <value type="bool" key="ClangTools.UseGlobalSettings">true</value>
+   </valuemap>
+  </valuemap>
+ </data>
+ <data>
+  <variable>ProjectExplorer.Project.Target.0</variable>
+  <valuemap type="QVariantMap">
+   <value type="QString" key="DeviceType">Desktop</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Desktop Qt 6.9.0 MinGW 64-bit</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Desktop Qt 6.9.0 MinGW 64-bit</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">qt.qt6.690.win64_mingw_kit</value>
+   <value type="qlonglong" key="ProjectExplorer.Target.ActiveBuildConfiguration">0</value>
+   <value type="qlonglong" key="ProjectExplorer.Target.ActiveDeployConfiguration">0</value>
+   <value type="qlonglong" key="ProjectExplorer.Target.ActiveRunConfiguration">0</value>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
+    <value type="QString" key="CMake.Build.Type">Debug</value>
+    <value type="int" key="CMake.Configure.BaseEnvironment">2</value>
+    <value type="bool" key="CMake.Configure.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="CMake.Configure.UserEnvironmentChanges"/>
+    <value type="QString" key="CMake.Initial.Parameters">-DCMAKE_PREFIX_PATH:PATH=%{Qt:QT_INSTALL_PREFIX}
+-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON
+-DCMAKE_C_COMPILER:FILEPATH=%{Compiler:Executable:C}
+-DCMAKE_CXX_COMPILER:FILEPATH=%{Compiler:Executable:Cxx}
+-DCMAKE_CXX_FLAGS_INIT:STRING=%{Qt:QML_DEBUG_FLAG}
+-DQT_QMAKE_EXECUTABLE:FILEPATH=%{Qt:qmakeExecutable}
+-DCMAKE_GENERATOR:STRING=Ninja
+-DCMAKE_BUILD_TYPE:STRING=Debug</value>
+    <value type="int" key="EnableQmlDebugging">0</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">D:\QtProjects\SunSensorAnalyze\build\Desktop_Qt_6_9_0_MinGW_64_bit-Debug</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">all</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Собрать</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Build</value>
+    </valuemap>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.1">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">clean</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Собрать</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Clean</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">2</value>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.CustomParsers"/>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ParseStandardOutput">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges"/>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Отладка</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeBuildConfiguration</value>
+   </valuemap>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.1">
+    <value type="QString" key="CMake.Build.Type">Release</value>
+    <value type="int" key="CMake.Configure.BaseEnvironment">2</value>
+    <value type="bool" key="CMake.Configure.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="CMake.Configure.UserEnvironmentChanges"/>
+    <value type="QString" key="CMake.Initial.Parameters">-DCMAKE_PREFIX_PATH:PATH=%{Qt:QT_INSTALL_PREFIX}
+-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON
+-DCMAKE_C_COMPILER:FILEPATH=%{Compiler:Executable:C}
+-DCMAKE_CXX_COMPILER:FILEPATH=%{Compiler:Executable:Cxx}
+-DCMAKE_CXX_FLAGS_INIT:STRING=%{Qt:QML_DEBUG_FLAG}
+-DQT_QMAKE_EXECUTABLE:FILEPATH=%{Qt:qmakeExecutable}
+-DCMAKE_GENERATOR:STRING=Ninja
+-DCMAKE_BUILD_TYPE:STRING=Release</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">D:\QtProjects\SunSensorAnalyze\build\Desktop_Qt_6_9_0_MinGW_64_bit-Release</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">all</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Build</value>
+    </valuemap>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.1">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">clean</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Clean</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">2</value>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.CustomParsers"/>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ParseStandardOutput">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges"/>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Выпуск</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeBuildConfiguration</value>
+   </valuemap>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.2">
+    <value type="QString" key="CMake.Build.Type">RelWithDebInfo</value>
+    <value type="int" key="CMake.Configure.BaseEnvironment">2</value>
+    <value type="bool" key="CMake.Configure.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="CMake.Configure.UserEnvironmentChanges"/>
+    <value type="QString" key="CMake.Initial.Parameters">-DCMAKE_PREFIX_PATH:PATH=%{Qt:QT_INSTALL_PREFIX}
+-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON
+-DCMAKE_C_COMPILER:FILEPATH=%{Compiler:Executable:C}
+-DCMAKE_CXX_COMPILER:FILEPATH=%{Compiler:Executable:Cxx}
+-DCMAKE_CXX_FLAGS_INIT:STRING=%{Qt:QML_DEBUG_FLAG}
+-DQT_QMAKE_EXECUTABLE:FILEPATH=%{Qt:qmakeExecutable}
+-DCMAKE_GENERATOR:STRING=Ninja
+-DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">D:\QtProjects\SunSensorAnalyze\build\Desktop_Qt_6_9_0_MinGW_64_bit-RelWithDebInfo</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">all</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Build</value>
+    </valuemap>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.1">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">clean</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Clean</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">2</value>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.CustomParsers"/>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ParseStandardOutput">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges"/>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Выпуск с отладочной информацией</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeBuildConfiguration</value>
+   </valuemap>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.3">
+    <value type="QString" key="CMake.Build.Type">RelWithDebInfo</value>
+    <value type="int" key="CMake.Configure.BaseEnvironment">2</value>
+    <value type="bool" key="CMake.Configure.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="CMake.Configure.UserEnvironmentChanges"/>
+    <value type="QString" key="CMake.Initial.Parameters">-DCMAKE_PREFIX_PATH:PATH=%{Qt:QT_INSTALL_PREFIX}
+-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON
+-DCMAKE_C_COMPILER:FILEPATH=%{Compiler:Executable:C}
+-DCMAKE_CXX_COMPILER:FILEPATH=%{Compiler:Executable:Cxx}
+-DCMAKE_CXX_FLAGS_INIT:STRING=%{Qt:QML_DEBUG_FLAG}
+-DQT_QMAKE_EXECUTABLE:FILEPATH=%{Qt:qmakeExecutable}
+-DCMAKE_GENERATOR:STRING=Ninja
+-DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo</value>
+    <value type="int" key="EnableQmlDebugging">0</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">D:\QtProjects\SunSensorAnalyze\build\Desktop_Qt_6_9_0_MinGW_64_bit-Profile</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">all</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Build</value>
+    </valuemap>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.1">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">clean</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Clean</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">2</value>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.CustomParsers"/>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ParseStandardOutput">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges"/>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Profile</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeBuildConfiguration</value>
+   </valuemap>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.4">
+    <value type="QString" key="CMake.Build.Type">MinSizeRel</value>
+    <value type="int" key="CMake.Configure.BaseEnvironment">2</value>
+    <value type="bool" key="CMake.Configure.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="CMake.Configure.UserEnvironmentChanges"/>
+    <value type="QString" key="CMake.Initial.Parameters">-DCMAKE_PREFIX_PATH:PATH=%{Qt:QT_INSTALL_PREFIX}
+-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON
+-DCMAKE_C_COMPILER:FILEPATH=%{Compiler:Executable:C}
+-DCMAKE_CXX_COMPILER:FILEPATH=%{Compiler:Executable:Cxx}
+-DCMAKE_CXX_FLAGS_INIT:STRING=%{Qt:QML_DEBUG_FLAG}
+-DQT_QMAKE_EXECUTABLE:FILEPATH=%{Qt:qmakeExecutable}
+-DCMAKE_GENERATOR:STRING=Ninja
+-DCMAKE_BUILD_TYPE:STRING=MinSizeRel</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">D:\QtProjects\SunSensorAnalyze\build\Desktop_Qt_6_9_0_MinGW_64_bit-MinSizeRel</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">all</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Сборка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Build</value>
+    </valuemap>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.1">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString">clean</value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.MakeStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Очистка</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Clean</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">2</value>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.CustomParsers"/>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ParseStandardOutput">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges"/>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Выпуск минимального размера</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeBuildConfiguration</value>
+   </valuemap>
+   <value type="qlonglong" key="ProjectExplorer.Target.BuildConfigurationCount">5</value>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.DeployConfiguration.0">
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">0</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Развёртывание</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Развёртывание</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Deploy</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">1</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.DeployConfiguration.CustomData"/>
+    <value type="bool" key="ProjectExplorer.DeployConfiguration.CustomDataEnabled">false</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.DefaultDeployConfiguration</value>
+   </valuemap>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.DeployConfiguration.1">
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="QString" key="CMakeProjectManager.MakeStep.BuildPreset"></value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.BuildTargets">
+       <value type="QString"></value>
+      </valuelist>
+      <value type="bool" key="CMakeProjectManager.MakeStep.ClearSystemEnvironment">false</value>
+      <valuelist type="QVariantList" key="CMakeProjectManager.MakeStep.UserEnvironmentChanges"/>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ApplicationManagerPlugin.Deploy.CMakePackageStep</value>
+     </valuemap>
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
+      <value type="QString" key="ApplicationManagerPlugin.Deploy.InstallPackageStep.Arguments">install-package --acknowledge</value>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Install Application Manager package</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ApplicationManagerPlugin.Deploy.InstallPackageStep</value>
+      <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedFiles"/>
+      <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedHosts"/>
+      <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedRemotePaths"/>
+      <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedSysroots"/>
+      <valuelist type="QVariantList" key="RemoteLinux.LastDeployedLocalTimes"/>
+      <valuelist type="QVariantList" key="RemoteLinux.LastDeployedRemoteTimes"/>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">2</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Развёртывание</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Развёртывание</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Deploy</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">1</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.DeployConfiguration.CustomData"/>
+    <value type="bool" key="ProjectExplorer.DeployConfiguration.CustomDataEnabled">false</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ApplicationManagerPlugin.Deploy.Configuration</value>
+   </valuemap>
+   <value type="qlonglong" key="ProjectExplorer.Target.DeployConfigurationCount">2</value>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.0">
+    <value type="bool" key="Analyzer.Perf.Settings.UseGlobalSettings">true</value>
+    <value type="bool" key="Analyzer.QmlProfiler.Settings.UseGlobalSettings">true</value>
+    <value type="int" key="Analyzer.Valgrind.Callgrind.CostFormat">0</value>
+    <value type="bool" key="Analyzer.Valgrind.Settings.UseGlobalSettings">true</value>
+    <valuelist type="QVariantList" key="CustomOutputParsers"/>
+    <value type="int" key="PE.EnvironmentAspect.Base">2</value>
+    <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
+    <value type="bool" key="PE.EnvironmentAspect.PrintOnRun">false</value>
+    <value type="QString" key="PerfRecordArgsId">-e cpu-cycles --call-graph &quot;dwarf,4096&quot; -F 250</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">SolarSensors</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">SolarSensors</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
+    <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
+    <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">D:/QtProjects/SunSensorAnalyze/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug</value>
+   </valuemap>
+   <value type="qlonglong" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>ProjectExplorer.Project.TargetCount</variable>
+  <value type="qlonglong">1</value>
+ </data>
+ <data>
+  <variable>ProjectExplorer.Project.Updater.FileVersion</variable>
+  <value type="int">22</value>
+ </data>
+ <data>
+  <variable>Version</variable>
+  <value type="int">22</value>
+ </data>
+</qtcreator>
+</file>
+
+<file path="converttojson.cpp">
+#include "converttojson.h"
+
+convertToJson::convertToJson() {}
+</file>
+
+<file path="converttojson.h">
+#ifndef CONVERTTOJSON_H
+#define CONVERTTOJSON_H
+
+class convertToJson
+{
+public:
+    convertToJson();
+};
+
+#endif // CONVERTTOJSON_H
+</file>
+
+<file path="main.cpp">
+#include <QApplication>
+#include <QQuickWidget>
+#include <QQmlContext>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <QDir>
+#include <QDebug>
+#include <QElapsedTimer> // Добавлено для замера времени
+#include <QQuickStyle>
+
+#include "sensormodel.h"
+
+int main(int argc, char **argv) {
+    QQuickStyle::setStyle("Basic");
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+
+    QApplication app(argc, argv);
+
+    // Таймер для проверки производительности
+    QElapsedTimer timer;
+    timer.start();
+
+    qInfo() << "[0 ms] Program started.";
+
+    SensorModel model;
+
+    QString appPath = QCoreApplication::applicationDirPath();
+    QString txtPath = QDir(appPath).filePath("results.txt");
+
+    if (QFile::exists(txtPath)) {
+        qInfo() << "[" << timer.elapsed() << "ms] File found. Starting parsing and PRE-CALCULATION...";
+
+        // В этот момент происходит чтение И математика
+        bool ok = model.parseTxtInternal(txtPath);
+
+        if (ok) {
+            qInfo() << "[" << timer.elapsed() << "ms] Parsing & Math FINISHED. Data ready in RAM.";
+        } else {
+            qWarning() << "Parsing failed.";
+        }
+    } else {
+        qInfo() << "results.txt not found.";
+    }
+
+    qInfo() << "[" << timer.elapsed() << "ms] Creating Window...";
+
+    QWidget window;
+    window.setWindowTitle("Solar Sensor Analytics");
+    window.resize(1100, 750);
+
+    QVBoxLayout *layout = new QVBoxLayout(&window);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    QQuickWidget *view = new QQuickWidget;
+    view->setResizeMode(QQuickWidget::SizeRootObjectToView);
+
+    view->rootContext()->setContextProperty("sensorModel", &model);
+    view->setSource(QUrl::fromLocalFile(QDir(appPath).filePath("Main.qml")));
+
+    layout->addWidget(view);
+
+    window.show();
+    qInfo() << "[" << timer.elapsed() << "ms] Window shown.";
+
+    return app.exec();
+}
+</file>
+
+<file path="mainwindow.cpp">
+#include "mainwindow.h"
+#include "./ui_mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+</file>
+
+<file path="mainwindow.h">
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+
+QT_BEGIN_NAMESPACE
+namespace Ui {
+class MainWindow;
+}
+QT_END_NAMESPACE
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+private:
+    Ui::MainWindow *ui;
+};
+#endif // MAINWINDOW_H
+</file>
+
+<file path="mainwindow.ui">
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+</file>
+
+<file path="reportgenerator.cpp">
+#include "reportgenerator.h"
+
+ReportGenerator::ReportGenerator() {}
+</file>
+
+<file path="reportgenerator.h">
+#ifndef REPORTGENERATOR_H
+#define REPORTGENERATOR_H
+
+class ReportGenerator
+{
+public:
+    ReportGenerator();
+};
+
+#endif // REPORTGENERATOR_H
+</file>
+
+<file path="results.txt">
 Time	S1_A	S1_B	S2_A	S2_B	S3_A	S3_B	S4_A	S4_B
 0,00	206	141	266	233	176	101	277	105
 0,03	206	141	266	233	176	101	277	106
@@ -2004,3 +2750,596 @@ Time	S1_A	S1_B	S2_A	S2_B	S3_A	S3_B	S4_A	S4_B
 29,96	208	138	267	232	175	102	277	105
 29,97	208	138	267	232	175	102	277	105
 29,99	208	138	267	232	175	102	277	105
+</file>
+
+<file path="sensormanager.cpp">
+#include "sensormanager.h"
+
+SensorManager::SensorManager() {}
+</file>
+
+<file path="sensormanager.h">
+#ifndef SENSORMANAGER_H
+#define SENSORMANAGER_H
+
+class SensorManager
+{
+public:
+    SensorManager();
+};
+
+#endif // SENSORMANAGER_H
+</file>
+
+<file path="sensormodel.cpp">
+#include "sensormodel.h"
+
+#include <QFile>
+#include <QTextStream>
+#include <QRegularExpression>
+#include <QDebug>
+#include <QUrl>
+#include <QStandardPaths>
+#include <QDateTime>
+#include <QDir>
+#include <QtMath> // Для qAbs
+
+// Важно для работы с графиками
+#include <QtCharts/QXYSeries>
+#include <QtCharts/QAbstractSeries>
+
+
+SensorModel::SensorModel(QObject *parent) : QAbstractListModel(parent) {}
+
+int SensorModel::rowCount(const QModelIndex &parent) const {
+    if (parent.isValid()) return 0;
+    return m_sensors.size();
+}
+
+QVariant SensorModel::data(const QModelIndex &index, int role) const {
+    if (!index.isValid()) return {};
+    int row = index.row();
+    if (row < 0 || row >= m_sensors.size()) return {};
+
+    const Sensor &s = m_sensors.at(row);
+    switch (role) {
+    case IdRole: return s.id;
+    case NameRole: return s.name;
+    // DataRole оставляем для совместимости, но для графиков используем fillSeries
+    case DataRole: return sensorDataToVariantList(s);
+    default: return {};
+    }
+}
+
+QHash<int, QByteArray> SensorModel::roleNames() const {
+    QHash<int, QByteArray> roles;
+    roles[IdRole] = "sensorId";
+    roles[NameRole] = "sensorName";
+    roles[DataRole] = "sensorData";
+    return roles;
+}
+
+QVariant SensorModel::sensorDataToVariantList(const Sensor &s) const {
+    QVariantList list;
+    // Резервируем память, чтобы избежать лишних переаллокаций
+    list.reserve(s.data.size());
+
+    for (const DataPoint &d : s.data) {
+        QVariantMap m;
+        m["time"] = d.time;
+        m["v1"] = d.v1;       // Сырое A
+        m["v2"] = d.v2;       // Сырое B
+        m["v1c"] = d.v1_corr; // Скорректированное A
+        m["v2c"] = d.v2_corr; // Скорректированное B
+        list.append(m);
+    }
+    return list;
+}
+
+// =========================================================================
+// ОПТИМИЗАЦИЯ ГРАФИКОВ: Прямая передача данных в QML
+// =========================================================================
+void SensorModel::fillSeries(QtCharts::QAbstractSeries *series, int sensorIndex, bool useCorrected, QString channel) {
+    if (!series) return;
+
+    // Теперь QXYSeries виден благодаря using namespace
+    QXYSeries *xySeries = qobject_cast<QXYSeries *>(series);
+    if (!xySeries) {
+        qWarning() << "Series is not a QXYSeries";
+        return;
+    }
+
+    if (sensorIndex < 0 || sensorIndex >= m_sensors.size()) {
+        xySeries->clear();
+        return;
+    }
+
+    const Sensor &s = m_sensors.at(sensorIndex);
+    QList<QPointF> points;
+    points.reserve(s.data.size());
+
+    for (const DataPoint &dp : s.data) {
+        double val = (channel == "A") ? (useCorrected ? dp.v1_corr : dp.v1)
+                                      : (useCorrected ? dp.v2_corr : dp.v2);
+        points.append(QPointF(dp.time, val));
+    }
+
+    xySeries->replace(points);
+}
+
+// =========================================================================
+// МАТЕМАТИКА: Предварительный расчет калибровки
+// =========================================================================
+double SensorModel::safeDivide(double target, double current) {
+    return (qAbs(current) > 1e-6) ? (target / current) : 1.0;
+}
+
+void SensorModel::preCalculateCalibration() {
+    if (m_sensors.isEmpty()) return;
+
+    int sensorCount = m_sensors.size();
+
+    // Вектора для хранения средних значений
+    QVector<double> avgHemisphere1(sensorCount, 0.0);
+    QVector<double> avgHemisphere2(sensorCount, 0.0);
+    double totalIntensitySum = 0.0;
+
+    // 1. Считаем средние значения для каждого датчика
+    for (int i = 0; i < sensorCount; i++) {
+        const Sensor &sensor = m_sensors.at(i);
+        if (sensor.data.isEmpty()) continue;
+
+        double sumH1 = 0;
+        double sumH2 = 0;
+
+        for (const DataPoint &dp : sensor.data) {
+            sumH1 += dp.v1;
+            sumH2 += dp.v2;
+        }
+
+        double size = static_cast<double>(sensor.data.size());
+        avgHemisphere1[i] = sumH1 / size;
+        avgHemisphere2[i] = sumH2 / size;
+
+        // Интенсивность = сумма средних
+        double intensity = avgHemisphere1[i] + avgHemisphere2[i];
+        totalIntensitySum += intensity;
+    }
+
+    // 2. Считаем эталон (Reference)
+    double referenceValue = totalIntensitySum / sensorCount;
+    double halfRef = referenceValue / 2.0;
+
+    // 3. Применяем коэффициенты сразу ко всем точкам
+    for (int i = 0; i < sensorCount; ++i) {
+        Sensor &s = m_sensors[i]; // Используем ссылку, чтобы менять данные
+
+        // Коэффициенты для текущего сенсора
+        double k1 = safeDivide(halfRef, avgHemisphere1[i]);
+        double k2 = safeDivide(halfRef, avgHemisphere2[i]);
+
+        // Заполняем поля _corr
+        for (DataPoint &dp : s.data) {
+            dp.v1_corr = dp.v1 * k1;
+            dp.v2_corr = dp.v2 * k2;
+        }
+    }
+
+    qInfo() << "Calibration calculated. Reference Intensity:" << referenceValue;
+}
+
+// =========================================================================
+// ПАРСЕР: Чтение TXT файла
+// =========================================================================
+bool SensorModel::parseTxtInternal(const QString &txtFilePath) {
+    QFile file(txtFilePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "Cannot open file:" << txtFilePath;
+        return false;
+    }
+
+    QTextStream in(&file);
+    QString headerLine;
+    bool headerFound = false;
+
+    // 1. Ищем заголовок (Time ... S1_A ...)
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        // Используем CaseInsensitive для надежности
+        if (line.contains("Time", Qt::CaseInsensitive) && line.contains("S1_A", Qt::CaseInsensitive)) {
+            headerLine = line;
+            headerFound = true;
+            break;
+        }
+    }
+
+    if (!headerFound) {
+        qWarning() << "Headers not found in file:" << txtFilePath;
+        return false;
+    }
+
+    // 2. Парсим заголовки (разделитель - любые пробелы или табы)
+    QStringList headers = headerLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+
+    struct ColInfo { int sensorId; int valueType; };
+    QMap<int, ColInfo> columnMapping;
+    QRegularExpression re("S(\\d+)_([AB])", QRegularExpression::CaseInsensitiveOption);
+
+    for (int i = 0; i < headers.size(); ++i) {
+        QRegularExpressionMatch match = re.match(headers[i].trimmed());
+        if (match.hasMatch()) {
+            int sId = match.captured(1).toInt();
+            QString typeStr = match.captured(2).toUpper();
+            columnMapping[i] = {sId, (typeStr == "A" ? 1 : 2)};
+        }
+    }
+
+    if (columnMapping.isEmpty()) {
+        file.close();
+        return false;
+    }
+
+    QMap<int, Sensor> tempSensors;
+
+    // 3. Читаем данные построчно
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+
+        // Минимум: Time + 1 значение
+        if (parts.size() < 2) continue;
+
+        // Обработка времени (замена запятой 0,00 -> 0.00)
+        QString timeStr = parts[0];
+        timeStr.replace(',', '.');
+
+        bool ok = false;
+        double time = timeStr.toDouble(&ok);
+        if (!ok) continue;
+
+        QMap<int, DataPoint> rowPoints;
+
+        // Проход по колонкам
+        for (int i = 1; i < parts.size(); ++i) {
+            if (!columnMapping.contains(i)) continue;
+
+            ColInfo info = columnMapping[i];
+            QString valStr = parts[i];
+            valStr.replace(',', '.'); // Значения тоже могут быть с запятыми
+            double val = valStr.toDouble();
+
+            // Создаем точку, если ее еще нет
+            if (!rowPoints.contains(info.sensorId)) {
+                // Инициализируем нулями
+                rowPoints[info.sensorId] = {time, 0.0, 0.0, 0.0, 0.0};
+            }
+
+            if (info.valueType == 1) rowPoints[info.sensorId].v1 = val;
+            else rowPoints[info.sensorId].v2 = val;
+        }
+
+        // Сохраняем во временную карту
+        QMapIterator<int, DataPoint> it(rowPoints);
+        while (it.hasNext()) {
+            it.next();
+            int sId = it.key();
+
+            if (!tempSensors.contains(sId)) {
+                Sensor s;
+                s.id = sId;
+                s.name = QString("Sensor %1").arg(sId);
+                tempSensors[sId] = s;
+            }
+            tempSensors[sId].data.append(it.value());
+        }
+    }
+    file.close();
+
+    // 4. Финализация: сортировка и расчет
+    beginResetModel();
+    m_sensors.clear();
+
+    QList<int> keys = tempSensors.keys();
+    std::sort(keys.begin(), keys.end()); // Сортируем по ID (1, 2, 3...)
+
+    for (int key : keys) {
+        m_sensors.append(tempSensors[key]);
+    }
+
+    // !!! Считаем математику ОДИН РАЗ здесь !!!
+    preCalculateCalibration();
+
+    endResetModel();
+
+    return !m_sensors.isEmpty();
+}
+
+// =========================================================================
+// ИМПОРТ / ЭКСПОРТ
+// =========================================================================
+
+void SensorModel::importFromTxt(const QString &fileUrl) {
+    QString path = QUrl(fileUrl).toLocalFile();
+    if (path.isEmpty()) path = fileUrl;
+
+    if (parseTxtInternal(path)) {
+        qInfo() << "Successfully imported:" << path;
+    } else {
+        qWarning() << "Failed to import:" << path;
+    }
+}
+
+void SensorModel::exportToCsv(const QString &fileUrl) {
+    QString path = QUrl(fileUrl).toLocalFile();
+    if (path.isEmpty()) path = fileUrl;
+
+    if (!path.endsWith(".csv", Qt::CaseInsensitive)) path += ".csv";
+
+    QFile f(path);
+    if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&f);
+        // Заголовок CSV
+        out << "SensorID,SensorName,Time,Raw_A,Raw_B,Corrected_A,Corrected_B\n";
+
+        for (const Sensor &s : m_sensors) {
+            for (const DataPoint &d : s.data) {
+                out << s.id << "," << s.name << ","
+                    << QString::number(d.time, 'f', 3) << ","
+                    << QString::number(d.v1, 'f', 2) << ","
+                    << QString::number(d.v2, 'f', 2) << ","
+                    << QString::number(d.v1_corr, 'f', 4) << ","
+                    << QString::number(d.v2_corr, 'f', 4) << "\n";
+            }
+        }
+        f.close();
+        qInfo() << "Exported to CSV:" << path;
+    } else {
+        qWarning() << "Failed to write CSV:" << path;
+    }
+}
+
+void SensorModel::generateReport(int index) {
+    // Старая функция (если нужна совместимость)
+    if (index < 0 || index >= m_sensors.size()) return;
+    const Sensor &s = m_sensors.at(index);
+    QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    QString filename = QString("%1/sensor_%2_report_%3.csv")
+                           .arg(docs).arg(s.id)
+                           .arg(QDateTime::currentDateTime().toString("HHmmss"));
+    QFile f(filename);
+    if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&f);
+        out << "Time,Raw_A,Raw_B\n";
+        for (const DataPoint &d : s.data) {
+            out << d.time << "," << d.v1 << "," << d.v2 << "\n";
+        }
+        f.close();
+        qInfo() << "Single Report generated:" << filename;
+    }
+}
+</file>
+
+<file path="sensormodel.h">
+#ifndef SENSORMODEL_H
+#define SENSORMODEL_H
+
+#include <QAbstractListModel>
+#include <QVector>
+#include <QString>
+#include <QVariant>
+
+// Подключаем базовый заголовок графиков
+#include <QtCharts/QAbstractSeries>
+
+// ВАЖНО: Активируем пространство имен QtCharts для всего хедера
+
+
+struct DataPoint {
+    double time;
+    double v1;
+    double v2;
+    double v1_corr;
+    double v2_corr;
+};
+
+struct Sensor {
+    int id;
+    QString name;
+    QVector<DataPoint> data;
+};
+
+class SensorModel : public QAbstractListModel
+{
+    Q_OBJECT
+public:
+    enum Roles { IdRole = Qt::UserRole + 1, NameRole, DataRole };
+
+    explicit SensorModel(QObject *parent = nullptr);
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QHash<int, QByteArray> roleNames() const override;
+
+    Q_INVOKABLE void importFromTxt(const QString &fileUrl);
+    Q_INVOKABLE void exportToCsv(const QString &fileUrl);
+    Q_INVOKABLE void generateReport(int index);
+
+    // Теперь пишем просто QAbstractSeries без префиксов
+    Q_INVOKABLE void fillSeries(QAbstractSeries *series, int sensorIndex, bool useCorrected, QString channel);
+
+    bool parseTxtInternal(const QString &txtFilePath);
+
+private:
+    QVector<Sensor> m_sensors;
+    QVariant sensorDataToVariantList(const Sensor &s) const;
+    void preCalculateCalibration();
+    static double safeDivide(double target, double current);
+};
+
+#endif // SENSORMODEL_H
+</file>
+
+<file path="main.qml">
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtCharts
+import Qt.labs.platform as Platform
+
+Rectangle {
+    id: root
+    anchors.fill: parent
+    color: "#f5f5f5"
+
+    property int currentIndex: -1
+    property string viewMode: "raw"
+
+    function getSensorColor(idx) {
+        if (idx < 0) return "black";
+        return Qt.hsla((idx * 0.618033988749895) % 1.0, 0.75, 0.5, 1.0);
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
+
+        // МЕНЮ
+        Rectangle {
+            Layout.fillWidth: true; Layout.preferredHeight: 35; color: "#343a40"; z: 100
+            Row {
+                anchors.fill: parent; anchors.leftMargin: 10; spacing: 10
+
+                Button {
+                    text: "Файл"
+                    background: Rectangle { color: parent.down ? "#555" : "transparent" }
+                    contentItem: Text { text: parent.text; color: "white"; font.bold: true; verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter }
+                    onClicked: fileMenu.open()
+                    Menu { id: fileMenu; y: parent.height
+                        MenuItem { text: "Импорт (.txt)"; onTriggered: openDialog.open() }
+                        MenuItem { text: "Экспорт (.csv)"; onTriggered: saveDialog.open() }
+                    }
+                }
+
+                Button {
+                    text: "Вид"
+                    background: Rectangle { color: parent.down ? "#555" : "transparent" }
+                    contentItem: Text { text: parent.text; color: "white"; font.bold: true; verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter }
+                    onClicked: viewMenu.open()
+                    Menu { id: viewMenu; y: parent.height
+                        MenuItem { text: "Сырые данные"; checkable: true; checked: root.viewMode==="raw"; onTriggered: { root.viewMode="raw"; updateChart() } }
+                        MenuItem { text: "Скорректированные"; checkable: true; checked: root.viewMode==="corrected"; onTriggered: { root.viewMode="corrected"; updateChart() } }
+                    }
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter; leftPadding: 20
+                    text: root.viewMode === "raw" ? "РЕЖИМ: СЫРЫЕ" : "РЕЖИМ: КОРРЕКЦИЯ"
+                    color: root.viewMode === "raw" ? "#ffc107" : "#28a745"; font.bold: true
+                }
+            }
+        }
+
+        // РАБОЧАЯ ОБЛАСТЬ
+        RowLayout {
+            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
+
+            // Левая панель
+            Rectangle {
+                Layout.preferredWidth: 260; Layout.fillHeight: true; color: "white"; border.color: "#ddd"
+                ColumnLayout {
+                    anchors.fill: parent; spacing: 0
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 40; color: root.currentIndex===-1?"#007bff":"#f8f9fa"
+                        Text { anchors.centerIn: parent; text: "Все датчики"; color: root.currentIndex===-1?"white":"black"; font.bold: true }
+                        MouseArea { anchors.fill: parent; onClicked: { root.currentIndex = -1; updateChart() } }
+                    }
+                    ListView {
+                        id: sensorList; Layout.fillWidth: true; Layout.fillHeight: true; clip: true; model: sensorModel; spacing: 1
+                        delegate: Rectangle {
+                            width: parent.width; height: 40; color: root.currentIndex===index?"#e7f1ff":"white"
+                            RowLayout { anchors.fill: parent; anchors.leftMargin: 10
+                                Rectangle { width: 10; height: 10; radius: 5; color: getSensorColor(index) }
+                                Text { text: sensorName; font.bold: root.currentIndex===index }
+                            }
+                            MouseArea { anchors.fill: parent; onClicked: { root.currentIndex=index; updateChart() } }
+                        }
+                    }
+                }
+            }
+
+            // График
+            Rectangle {
+                Layout.fillWidth: true; Layout.fillHeight: true; color: "white"; clip: true
+                ChartView {
+                    id: chart; anchors.fill: parent; antialiasing: true;
+                    animationOptions: ChartView.NoAnimation;
+                    legend.alignment: Qt.AlignBottom
+
+                    // Оси
+                    ValueAxis { id: axisX; titleText: "Время (с)"; labelFormat: "%.1f" }
+                    ValueAxis { id: axisY; titleText: "Значение"; labelFormat: "%.0f" }
+                }
+
+                // Tooltip пришлось убрать в C++ версии, так как series создаются динамически,
+                // но можно вернуть, подключив сигналы внутри createSeries
+            }
+        }
+    }
+
+    Platform.FileDialog { id: openDialog; nameFilters: ["Text (*.txt)"]; onAccepted: { sensorModel.importFromTxt(file.toString()); updateChart(); } }
+    Platform.FileDialog { id: saveDialog; fileMode: Platform.FileDialog.SaveFile; nameFilters: ["CSV (*.csv)"]; onAccepted: { sensorModel.exportToCsv(file.toString()); } }
+
+    function updateChart() {
+        chart.removeAllSeries();
+        var isCorrected = (root.viewMode === "corrected");
+
+        // --- РЕЖИМ: ВСЕ ДАТЧИКИ ---
+        if(currentIndex === -1) {
+            var count = sensorModel.rowCount();
+            for(var i=0; i<count; i++) {
+                var idx = sensorModel.index(i,0);
+                var sName = sensorModel.data(idx, 258); // NameRole
+
+                // 1. Создаем пустую серию
+                var s = chart.createSeries(ChartView.SeriesTypeLine, sName, axisX, axisY);
+                s.color = getSensorColor(i);
+                s.width = 2;
+
+                // 2. Отправляем серию в C++ на заполнение
+                // Это происходит МГНОВЕННО (нет цикла в JS)
+                sensorModel.fillSeries(s, i, isCorrected, "A");
+            }
+        }
+        // --- РЕЖИМ: ОДИН ДАТЧИК ---
+        else {
+            var idx2 = sensorModel.index(currentIndex, 0);
+            var sName2 = sensorModel.data(idx2, 258);
+
+            // Канал A
+            var sA = chart.createSeries(ChartView.SeriesTypeLine, "Канал A", axisX, axisY);
+            sA.color = getSensorColor(currentIndex);
+            sA.width = 2;
+            sensorModel.fillSeries(sA, currentIndex, isCorrected, "A");
+
+            // Канал B
+            var sB = chart.createSeries(ChartView.SeriesTypeLine, "Канал B", axisX, axisY);
+            sB.color = Qt.lighter(sA.color, 1.5);
+            sB.width = 2;
+            sB.style = Qt.DashLine;
+            sensorModel.fillSeries(sB, currentIndex, isCorrected, "B");
+        }
+
+        // Автомасштабирование осей
+        // (Для идеальной скорости лучше считать Min/Max в C++ и отдавать сюда,
+        // но ChartView сам умеет подстраиваться, если ему не мешать, или можно установить фиксированные)
+        axisX.applyNiceNumbers();
+        axisY.applyNiceNumbers();
+    }
+
+    Component.onCompleted: updateTimer.start()
+    Timer { id: updateTimer; interval: 200; onTriggered: updateChart() }
+}
+</file>
+
+</files>

@@ -1,17 +1,24 @@
 #ifndef SENSORMODEL_H
 #define SENSORMODEL_H
-#include <QString>
+
 #include <QAbstractListModel>
+#include <QVector>
+#include <QString>
+#include <QVariant>
+#include <QPointF>
 
-// struct Sensor{
-//     int id;
-//     std::pair<int, int> values;
-// };
+// Обязательно подключаем заголовки
+#include <QtCharts/QAbstractSeries>
+#include <QtCharts/QXYSeries>
 
-struct DataPoint {
+// Активируем пространство имен QtCharts
+
+    struct DataPoint {
     double time;
     double v1;
     double v2;
+    double v1_corr;
+    double v2_corr;
 };
 
 struct Sensor {
@@ -20,36 +27,32 @@ struct Sensor {
     QVector<DataPoint> data;
 };
 
-class SensorModel : public QAbstractListModel{
-Q_OBJECT
+class SensorModel : public QAbstractListModel
+{
+    Q_OBJECT
 public:
+    enum Roles { IdRole = Qt::UserRole + 1, NameRole, DataRole };
 
-// Роли для QML. Важно: Qt::UserRole обычно равен 256.
-// NameRole = 258, DataRole = 259
-    enum Roles {
-        IdRole = Qt::UserRole + 1, // = 257
-        NameRole,                  // = 258
-        DataRole                   // = 259
-    };
+    explicit SensorModel(QObject *parent = nullptr);
 
-explicit SensorModel(QObject *parent = nullptr);
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QHash<int, QByteArray> roleNames() const override;
 
-int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-QHash<int, QByteArray> roleNames() const override;
+    Q_INVOKABLE void importFromTxt(const QString &fileUrl);
+    Q_INVOKABLE void exportToCsv(const QString &fileUrl);
+    Q_INVOKABLE void generateReport(int index);
 
-// Метод парсит raw .txt и сохраняет структурированный .json
-Q_INVOKABLE bool convertTxtToJson(const QString &txtFilePath, const QString &jsonFilePath);
+    // Используем QAbstractSeries
+    Q_INVOKABLE void fillSeries(QAbstractSeries *series, int sensorIndex, bool useCorrected, QString channel);
 
-// Метод загружает готовый .json в модель
-Q_INVOKABLE void loadFromJsonFile(const QString &filePath);
-
-// Генерация CSV отчета
-Q_INVOKABLE void generateReport(int index);
+    bool parseTxtInternal(const QString &txtFilePath);
 
 private:
-QVector<Sensor> m_sensors;
-QVariant sensorDataToVariantList(const Sensor &s) const;
+    QVector<Sensor> m_sensors;
+    QVariant sensorDataToVariantList(const Sensor &s) const;
+    void preCalculateCalibration();
+    static double safeDivide(double target, double current);
 };
 
 #endif // SENSORMODEL_H

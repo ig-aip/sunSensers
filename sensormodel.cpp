@@ -1,15 +1,23 @@
 #include "sensormodel.h"
 
 #include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QStandardPaths>
-#include <QDir>
-#include <QDateTime>
 #include <QTextStream>
 #include <QRegularExpression>
 #include <QDebug>
+#include <QUrl>
+#include <QStandardPaths>
+#include <QDateTime>
+#include <QDir>
+#include <QtMath> // Для qAbs
+
+// Важно для работы с графиками
+#include <QtMath>
+#include <QtChartsDepends>
+#include <QXYSeries>
+#include <QtCharts/QtCharts>
+#include <QtCharts/QXYSeries>
+#include <QtCharts/QAbstractSeries>
+
 
 SensorModel::SensorModel(QObject *parent) : QAbstractListModel(parent) {}
 
@@ -48,201 +56,186 @@ QVariant SensorModel::sensorDataToVariantList(const Sensor &s) const {
         m["time"] = d.time;
         m["v1"] = d.v1;
         m["v2"] = d.v2;
+        m["v1c"] = d.v1_corr;
+        m["v2c"] = d.v2_corr;
         list.append(m);
     }
     return list;
 }
 
-bool SensorModel::convertTxtToJson(const QString &txtFilePath, const QString &jsonFilePath) {
-    QFile file(txtFilePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Failed to open input TXT file:" << txtFilePath;
-        return false;
+void SensorModel::fillSeries(QAbstractSeries *series, int sensorIndex, bool useCorrected, QString channel) {
+    if (!series) return;
+
+    QXYSeries *xySeries = qobject_cast<QXYSeries *>(series);
+    if (!xySeries) return;
+
+    if (sensorIndex < 0 || sensorIndex >= m_sensors.size()) return;
+
+    const Sensor &s = m_sensors.at(sensorIndex);
+    QList<QPointF> points;
+    points.reserve(s.data.size());
+
+    for (const DataPoint &dp : s.data) {
+        double val = (channel == "A") ? (useCorrected ? dp.v1_corr : dp.v1)
+                                      : (useCorrected ? dp.v2_corr : dp.v2);
+        points.append(QPointF(dp.time, val));
     }
+
+    // Очистка и замена
+    xySeries->replace(points);
+}
+
+double SensorModel::safeDivide(double target, double current) {
+    return (qAbs(current) > 1e-6) ? (target / current) : 1.0;
+}
+
+void SensorModel::preCalculateCalibration() {
+    if (m_sensors.isEmpty()) return;
+    int sensorCount = m_sensors.size();
+    QVector<double> avgH1(sensorCount, 0.0);
+    QVector<double> avgH2(sensorCount, 0.0);
+    double totalIntensitySum = 0.0;
+
+    for (int i = 0; i < sensorCount; i++) {
+        const Sensor &sensor = m_sensors.at(i);
+        if (sensor.data.isEmpty()) continue;
+        double sumH1 = 0, sumH2 = 0;
+        for (const DataPoint &dp : sensor.data) {
+            sumH1 += dp.v1;
+            sumH2 += dp.v2;
+        }
+        avgH1[i] = sumH1 / sensor.data.size();
+        avgH2[i] = sumH2 / sensor.data.size();
+        totalIntensitySum += (avgH1[i] + avgH2[i]);
+    }
+
+    double referenceValue = totalIntensitySum / sensorCount;
+    double halfRef = referenceValue / 2.0;
+
+    for (int i = 0; i < sensorCount; ++i) {
+        Sensor &s = m_sensors[i];
+        double k1 = safeDivide(halfRef, avgH1[i]);
+        double k2 = safeDivide(halfRef, avgH2[i]);
+        for (DataPoint &dp : s.data) {
+            dp.v1_corr = dp.v1 * k1;
+            dp.v2_corr = dp.v2 * k2;
+        }
+    }
+}
+
+bool SensorModel::parseTxtInternal(const QString &txtFilePath) {
+    QFile file(txtFilePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
 
     QTextStream in(&file);
     QString headerLine;
     bool headerFound = false;
 
-    // 1. Ищем строку с заголовками
     while (!in.atEnd()) {
         QString line = in.readLine();
-        // Проверяем наличие ключевых слов (S1_A и Time)
-        if (line.contains("Time") && line.contains("S1_A")) {
+        if (line.contains("Time", Qt::CaseInsensitive) && line.contains("S1_A", Qt::CaseInsensitive)) {
             headerLine = line;
             headerFound = true;
             break;
         }
     }
+    if (!headerFound) return false;
 
-    if (!headerFound) {
-        qWarning() << "Headers not found in TXT file";
-        return false;
-    }
-
-    // 2. Парсим заголовки
-    // ИЗМЕНЕНИЕ: Делим по любым пробельным символам (табуляция или пробел)
     QStringList headers = headerLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-
     struct ColInfo { int sensorId; int valueType; };
     QMap<int, ColInfo> columnMapping;
-    QRegularExpression re("S(\\d+)_([AB])");
+    QRegularExpression re("S(\\d+)_([AB])", QRegularExpression::CaseInsensitiveOption);
 
     for (int i = 0; i < headers.size(); ++i) {
-        QString h = headers[i].trimmed();
-        QRegularExpressionMatch match = re.match(h);
+        QRegularExpressionMatch match = re.match(headers[i].trimmed());
         if (match.hasMatch()) {
-            int sId = match.captured(1).toInt();
-            QString typeStr = match.captured(2);
-            int vType = (typeStr == "A" ? 1 : 2);
-            columnMapping[i] = {sId, vType};
+            columnMapping[i] = {match.captured(1).toInt(), (match.captured(2).toUpper() == "A" ? 1 : 2)};
         }
     }
 
     QMap<int, Sensor> tempSensors;
-
-    // 3. Читаем данные
     while (!in.atEnd()) {
         QString line = in.readLine().trimmed();
         if (line.isEmpty()) continue;
-
-        // ИЗМЕНЕНИЕ: Делим строку по пробелам/табам
         QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-
-        // Проверка: количество колонок должно примерно совпадать (минимум Time + 1)
         if (parts.size() < 2) continue;
 
-        // ИЗМЕНЕНИЕ: Обработка времени с запятой (0,00 -> 0.00)
-        QString timeStr = parts[0];
-        timeStr.replace(',', '.'); // Заменяем запятую на точку для правильного парсинга
-
-        bool okTime = false;
-        double time = timeStr.toDouble(&okTime);
-        if (!okTime) continue;
-
+        double time = parts[0].replace(',', '.').toDouble();
         QMap<int, DataPoint> rowPoints;
 
         for (int i = 1; i < parts.size(); ++i) {
             if (!columnMapping.contains(i)) continue;
-
             ColInfo info = columnMapping[i];
-
-            // Данные значений тоже могут быть с запятой (на всякий случай заменяем)
-            QString valStr = parts[i];
-            valStr.replace(',', '.');
-            double val = valStr.toDouble();
-
-            if (!rowPoints.contains(info.sensorId)) {
-                rowPoints[info.sensorId] = {time, 0.0, 0.0};
-            }
-
+            double val = parts[i].replace(',', '.').toDouble();
+            if (!rowPoints.contains(info.sensorId)) rowPoints[info.sensorId] = {time, 0, 0, 0, 0};
             if (info.valueType == 1) rowPoints[info.sensorId].v1 = val;
             else rowPoints[info.sensorId].v2 = val;
         }
 
-        QMapIterator<int, DataPoint> it(rowPoints);
-        while (it.hasNext()) {
-            it.next();
-            int sId = it.key();
-            if (!tempSensors.contains(sId)) {
-                Sensor s;
-                s.id = sId;
-                s.name = QString("Sensor %1").arg(sId);
-                tempSensors[sId] = s;
+        for (auto it = rowPoints.begin(); it != rowPoints.end(); ++it) {
+            if (!tempSensors.contains(it.key())) {
+                tempSensors[it.key()].id = it.key();
+                tempSensors[it.key()].name = QString("Sensor %1").arg(it.key());
             }
-            tempSensors[sId].data.append(it.value());
+            tempSensors[it.key()].data.append(it.value());
         }
     }
-    file.close();
-
-    // 4. Формируем JSON
-    QJsonArray sensorsArray;
-    QList<int> keys = tempSensors.keys();
-    std::sort(keys.begin(), keys.end());
-
-    for (int key : keys) {
-        const Sensor &s = tempSensors[key];
-        QJsonObject sObj;
-        sObj["id"] = s.id;
-        sObj["name"] = s.name;
-
-        QJsonArray dataArray;
-        for (const DataPoint &dp : s.data) {
-            QJsonObject dpObj;
-            dpObj["time"] = dp.time;
-            dpObj["v1"] = dp.v1;
-            dpObj["v2"] = dp.v2;
-            dataArray.append(dpObj);
-        }
-        sObj["data"] = dataArray;
-        sensorsArray.append(sObj);
-    }
-
-    QJsonObject root;
-    root["sensors"] = sensorsArray;
-
-    QFile jsonFile(jsonFilePath);
-    if (!jsonFile.open(QIODevice::WriteOnly)) {
-        qWarning() << "Failed to open output JSON file";
-        return false;
-    }
-    jsonFile.write(QJsonDocument(root).toJson());
-    jsonFile.close();
-
-    qInfo() << "Successfully converted TXT (Tab Separated) to JSON:" << jsonFilePath;
-    return true;
-}
-
-void SensorModel::loadFromJsonFile(const QString &filePath) {
-    QFile f(filePath);
-    if (!f.open(QIODevice::ReadOnly)) {
-        qWarning() << "Cannot open JSON file:" << filePath;
-        return;
-    }
-    const QByteArray raw = f.readAll();
-    f.close();
-
-    QJsonParseError err;
-    QJsonDocument doc = QJsonDocument::fromJson(raw, &err);
-    if (err.error != QJsonParseError::NoError || !doc.isObject()) return;
-
-    QJsonObject root = doc.object();
-    QJsonArray arr = root["sensors"].toArray();
 
     beginResetModel();
     m_sensors.clear();
-    for (const QJsonValue &val : arr) {
-        QJsonObject so = val.toObject();
-        Sensor s;
-        s.id = so["id"].toInt();
-        s.name = so["name"].toString();
-
-        QJsonArray da = so["data"].toArray();
-        s.data.reserve(da.size());
-        for (const QJsonValue &dv : da) {
-            QJsonObject dobj = dv.toObject();
-            DataPoint dp;
-            dp.time = dobj["time"].toDouble();
-            dp.v1 = dobj["v1"].toDouble();
-            dp.v2 = dobj["v2"].toDouble();
-            s.data.append(dp);
-        }
-        m_sensors.append(s);
-    }
+    QList<int> keys = tempSensors.keys();
+    std::sort(keys.begin(), keys.end());
+    for (int key : keys) m_sensors.append(tempSensors[key]);
+    preCalculateCalibration();
     endResetModel();
+    return true;
 }
 
+void SensorModel::importFromTxt(const QString &fileUrl) {
+    QString path = QUrl(fileUrl).toLocalFile();
+    if (path.isEmpty()) path = fileUrl;
+    parseTxtInternal(path);
+}
+
+// ИСПРАВЛЕННЫЙ ЭКСПОРТ
+void SensorModel::exportToCsv(const QString &fileUrl) {
+    QString path = QUrl(fileUrl).toLocalFile();
+    if (path.isEmpty()) path = fileUrl;
+    if (!path.endsWith(".csv", Qt::CaseInsensitive)) path += ".csv";
+
+    QFile f(path);
+    if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&f);
+        out << "SensorID,SensorName,Time,Raw_A,Raw_B,Corrected_A,Corrected_B\n";
+        for (const Sensor &s : m_sensors) {
+            for (const DataPoint &d : s.data) {
+                out << s.id << "," << s.name << ","
+                    << QString::number(d.time, 'f', 3) << ","
+                    << QString::number(d.v1, 'f', 2) << ","
+                    << QString::number(d.v2, 'f', 2) << ","
+                    << QString::number(d.v1_corr, 'f', 4) << ","
+                    << QString::number(d.v2_corr, 'f', 4) << "\n";
+            }
+        }
+        f.close();
+    }
+}
+
+// ИСПРАВЛЕННЫЙ ОТЧЕТ
 void SensorModel::generateReport(int index) {
-    // Без изменений, код из предыдущего ответа
     if (index < 0 || index >= m_sensors.size()) return;
     const Sensor &s = m_sensors.at(index);
+
     QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    QString filename = QString("%1/sensor_%2.csv").arg(docs).arg(s.id);
+    QString filename = QString("%1/sensor_%2_report.csv").arg(docs).arg(s.id);
+
     QFile f(filename);
     if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&f);
-        out << "Time,Value_A,Value_B\n";
-        for (const DataPoint &d : s.data) out << d.time << "," << d.v1 << "," << d.v2 << "\n";
+        out << "Time,Raw_A,Raw_B\n";
+        for (const DataPoint &d : s.data) {
+            out << d.time << "," << d.v1 << "," << d.v2 << "\n";
+        }
         f.close();
     }
 }
