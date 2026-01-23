@@ -1,0 +1,17 @@
+# ninja log v6
+43	966	7908623353972049	SolarSensors_autogen/timestamp	dda05980f9d676ac
+43	966	7908623353972049	SolarSensors_autogen/mocs_compilation.cpp	dda05980f9d676ac
+43	966	7908623353972049	C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/SolarSensors_autogen/timestamp	dda05980f9d676ac
+43	966	7908623353972049	C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/SolarSensors_autogen/mocs_compilation.cpp	dda05980f9d676ac
+970	5043	7908623354943734	CMakeFiles/SolarSensors.dir/main.cpp.obj	7ccc9561957e785a
+967	4497	7908623354903818	CMakeFiles/SolarSensors.dir/SolarSensors_autogen/mocs_compilation.cpp.obj	24c0fa4baad2397e
+974	5766	7908623354973543	CMakeFiles/SolarSensors.dir/sensormodel.cpp.obj	ef5dafeff0522dd5
+5766	7037	7908623402895472	SolarSensors.exe	2cd2008eb195429a
+45	995	7908625015545723	SolarSensors_autogen/timestamp	dda05980f9d676ac
+45	995	7908625015545723	SolarSensors_autogen/mocs_compilation.cpp	dda05980f9d676ac
+45	995	7908625015545723	C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/SolarSensors_autogen/timestamp	dda05980f9d676ac
+45	995	7908625015545723	C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/SolarSensors_autogen/mocs_compilation.cpp	dda05980f9d676ac
+996	5112	7908625016523106	CMakeFiles/SolarSensors.dir/SolarSensors_autogen/mocs_compilation.cpp.obj	24c0fa4baad2397e
+999	5696	7908625016553017	CMakeFiles/SolarSensors.dir/main.cpp.obj	7ccc9561957e785a
+1002	6538	7908625016582942	CMakeFiles/SolarSensors.dir/sensormodel.cpp.obj	ef5dafeff0522dd5
+6538	7747	7908625071945006	SolarSensors.exe	2cd2008eb195429a

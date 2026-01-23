@@ -36,6 +36,7 @@ Rectangle {
                     Menu { id: fileMenu; y: parent.height
                         MenuItem { text: "Импорт (.txt)"; onTriggered: openDialog.open() }
                         MenuItem { text: "Экспорт (.csv)"; onTriggered: saveDialog.open() }
+                        MenuItem { text: "Экспорт JSON (с коэфф.)"; onTriggered: saveJsonDialog.open() }
                     }
                 }
                 Button {
@@ -56,7 +57,7 @@ Rectangle {
             }
         }
 
-        // РАБОЧАЯ ОБЛАСТЬ (Лево - Центр - Право)
+        // РАБОЧАЯ ОБЛАСТЬ
         RowLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
 
@@ -72,7 +73,7 @@ Rectangle {
                     ListView {
                         id: sensorList; Layout.fillWidth: true; Layout.fillHeight: true; clip: true; model: sensorModel; spacing: 1
                         delegate: Rectangle {
-                            width: parent.width; height: 40; color: root.currentIndex===index?"#e7f1ff":"white"
+                            width: ListView.view.width; height: 40; color: root.currentIndex===index?"#e7f1ff":"white"
                             RowLayout { anchors.fill: parent; anchors.leftMargin: 10
                                 Rectangle { width: 10; height: 10; radius: 5; color: getSensorColor(index) }
                                 Text { text: sensorName; font.bold: root.currentIndex===index }
@@ -142,14 +143,16 @@ Rectangle {
                                 Item { height: 10; width: 1 }
                                 Text { text: "Глобальный эталон:"; color: "#555" }
                                 Text {
-                                    text: (root.currentStats ? root.currentStats.reference.toFixed(2) : "0")
+                                    // БЕЗОПАСНАЯ ПРОВЕРКА
+                                    text: (root.currentStats && root.currentStats.reference !== undefined) ? root.currentStats.reference.toFixed(2) : "0"
                                     font.pointSize: 14; font.bold: true; color: "#007bff"
                                 }
 
                                 Item { height: 10; width: 1 }
                                 Text { text: "Средняя коррекция:"; color: "#555" }
                                 Text {
-                                    text: root.currentStats ? (root.currentStats.avgCorrection * 100).toFixed(2) + "%" : "0%"
+                                    // БЕЗОПАСНАЯ ПРОВЕРКА
+                                    text: (root.currentStats && root.currentStats.avgCorrection !== undefined) ? (root.currentStats.avgCorrection * 100).toFixed(2) + "%" : "0%"
                                     font.pointSize: 14; font.bold: true; color: "#28a745"
                                 }
                                 Text {
@@ -172,12 +175,21 @@ Rectangle {
                                 RowLayout {
                                     Text { text: "Коэфф:"; color: "#555" }
                                     Text {
-                                        text: root.currentStats ? "x" + root.currentStats.kA.toFixed(4) : ""
+                                        // БЕЗОПАСНАЯ ПРОВЕРКА
+                                        text: (root.currentStats && root.currentStats.kA !== undefined) ? "x" + root.currentStats.kA.toFixed(4) : ""
+                                        font.bold: true
+                                    }
+                                }
+                                RowLayout {
+                                    Text { text: "Погрешность:"; color: "#555" }
+                                    Text {
+                                        // БЕЗОПАСНАЯ ПРОВЕРКА
+                                        text: (root.currentStats && root.currentStats.pA !== undefined) ? root.currentStats.pA.toFixed(0) + "%" : ""
                                         font.bold: true
                                     }
                                 }
                                 Text {
-                                    text: "Среднее сырое: " + (root.currentStats ? root.currentStats.rawA.toFixed(1) : "")
+                                    text: "Среднее сырое: " + ((root.currentStats && root.currentStats.rawA !== undefined) ? root.currentStats.rawA.toFixed(1) : "")
                                     font.pixelSize: 11; color: "#666"
                                 }
 
@@ -188,12 +200,21 @@ Rectangle {
                                 RowLayout {
                                     Text { text: "Коэфф:"; color: "#555" }
                                     Text {
-                                        text: root.currentStats ? "x" + root.currentStats.kB.toFixed(4) : ""
+                                        // БЕЗОПАСНАЯ ПРОВЕРКА
+                                        text: (root.currentStats && root.currentStats.kB !== undefined) ? "x" + root.currentStats.kB.toFixed(4) : ""
+                                        font.bold: true
+                                    }
+                                }
+                                RowLayout {
+                                    Text { text: "Погрешность:"; color: "#555" }
+                                    Text {
+                                        // БЕЗОПАСНАЯ ПРОВЕРКА
+                                        text: (root.currentStats && root.currentStats.pB !== undefined) ? root.currentStats.pB.toFixed(0) + "%" : ""
                                         font.bold: true
                                     }
                                 }
                                 Text {
-                                    text: "Среднее сырое: " + (root.currentStats ? root.currentStats.rawB.toFixed(1) : "")
+                                    text: "Среднее сырое: " + ((root.currentStats && root.currentStats.rawB !== undefined) ? root.currentStats.rawB.toFixed(1) : "")
                                     font.pixelSize: 11; color: "#666"
                                 }
                             }
@@ -207,6 +228,15 @@ Rectangle {
 
     Platform.FileDialog { id: openDialog; nameFilters: ["Text (*.txt)"]; onAccepted: { sensorModel.importFromTxt(file.toString()); updateChart(); } }
     Platform.FileDialog { id: saveDialog; fileMode: Platform.FileDialog.SaveFile; nameFilters: ["CSV (*.csv)"]; onAccepted: { sensorModel.exportToCsv(file.toString()); } }
+    Platform.FileDialog {
+        id: saveJsonDialog
+        fileMode: Platform.FileDialog.SaveFile
+        nameFilters: ["JSON (*.json)"]
+        onAccepted: {
+            // Вызов метода C++
+            sensorModel.exportToJson(file.toString());
+        }
+    }
 
     function updateChart() {
         chart.removeAllSeries();
@@ -216,7 +246,7 @@ Rectangle {
             var count = sensorModel.rowCount();
             for(var i=0; i < count; i++) {
                 var idx = sensorModel.index(i,0);
-                var sName = sensorModel.data(idx, 258);
+                var sName = sensorModel.data(idx, 258); // NameRole
 
                 var s = chart.createSeries(ChartView.SeriesTypeLine, sName, axisX, axisY);
                 s.color = getSensorColor(i);

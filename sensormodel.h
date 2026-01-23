@@ -6,26 +6,26 @@
 #include <QString>
 #include <QVariant>
 #include <QPointF>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonValue>
 
-// Обязательно подключаем заголовки
 #include <QtCharts/QAbstractSeries>
 #include <QtCharts/QXYSeries>
 
-// Активируем пространство имен QtCharts
-
-    struct DataPoint {
+struct DataPoint {
     double time;
-    double v1;
-    double v2;
-    double v1_corr;
-    double v2_corr;
+    double v1;      // Канал A
+    double v2;      // Канал B
+    double v1_corr; // Скорректированный A
+    double v2_corr; // Скорректированный B
 };
 
 struct Sensor {
     int id;
     QString name;
     QVector<DataPoint> data;
-
     double kA = 1.0;
     double kB = 1.0;
 };
@@ -50,15 +50,12 @@ public:
 
     double globalReference() const { return m_globalReference; }
 
-    //QVariantMap getSensorStats(int index);
-
+    // Основной метод импорта: вызывает TXT->JSON, затем JSON->Model
     Q_INVOKABLE void importFromTxt(const QString &fileUrl);
+
     Q_INVOKABLE void exportToCsv(const QString &fileUrl);
     Q_INVOKABLE void generateReport(int index);
-
-    // Используем QAbstractSeries
     Q_INVOKABLE void fillSeries(QAbstractSeries *series, int sensorIndex, bool useCorrected, QString channel);
-
     Q_INVOKABLE QVariantMap getSensorStats(int index);
 
     double minTime() const { return m_minTime; }
@@ -66,25 +63,30 @@ public:
     double minValue() const { return m_minValue; }
     double maxValue() const { return m_maxValue; }
 
-
-
-    bool parseTxtInternal(const QString &txtFilePath);
+    // Логика автоматической загрузки при старте
+    bool loadResultsFile(const QString &filePath);
 
 signals:
     void dataRangeChanged();
 
 private:
     void calculateRanges();
-    QVector<Sensor> m_sensors;
-    QVariant sensorDataToVariantList(const Sensor &s) const;
     void preCalculateCalibration();
     static double safeDivide(double target, double current);
+    QVariant sensorDataToVariantList(const Sensor &s) const;
+
+    // --- НОВЫЕ МЕТОДЫ ---
+    // 1. Конвертирует TXT в JSON файл
+    bool convertTxtToJson(const QString &txtFilePath, const QString &jsonFilePath);
+    // 2. Парсит JSON файл в структуру Sensor
+    bool parseJsonInternal(const QString &jsonFilePath);
+
+    QVector<Sensor> m_sensors;
 
     double m_minTime = 0.0;
     double m_maxTime = 10.0;
     double m_minValue = 0.0;
     double m_maxValue = 100.0;
-
     double m_globalReference = 0.0;
 };
 
