@@ -45,9 +45,8 @@ QVariant SensorModel::sensorDataToVariantList(const Sensor &s) const {
     return QVariantList(); // Оптимизация: данные не гоняем через модель в QML
 }
 
-// ---------------------------------------------------------
-// ЭКСПОРТ JSON (С коэффициентами и статистикой)
-// ---------------------------------------------------------
+
+
 void SensorModel::exportToJson(const QString &fileUrl) {
     QString path = QUrl(fileUrl).toLocalFile();
     if (path.isEmpty()) path = fileUrl;
@@ -365,86 +364,99 @@ void SensorModel::preCalculateCalibration() {
 }
 
 void SensorModel::exportToCsv(const QString &fileUrl) {
-    // 1. Превращаем QML URL в локальный путь
+    // 1. Подготовка файла
     QString path = QUrl(fileUrl).toLocalFile();
     if (path.isEmpty()) path = fileUrl;
     if (!path.endsWith(".csv", Qt::CaseInsensitive)) path += ".csv";
 
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning() << "Не удалось открыть файл для записи:" << path;
+        qWarning() << "Ошибка создания файла:" << path;
         return;
     }
 
     QTextStream out(&file);
-    // Устанавливаем кодировку UTF-8 и BOM для корректного открытия в Excel
-    out.setGenerateByteOrderMark(true);
+    out.setGenerateByteOrderMark(true); // UTF-8 BOM для Excel
 
     if (m_sensors.isEmpty()) {
         file.close();
         return;
     }
 
-    // 2. Создаем заголовок таблицы
-    // Чтобы соответствовать JSON, выводим и сырые, и скорректированные данные
-    QStringList header;
-    header << "Time (s)";
+    double totalDev = 0;
+    int countDev = 0;
+    for(const Sensor &s : m_sensors) {
+        totalDev += qAbs(1.0 - s.kA) + qAbs(1.0 - s.kB);
+        countDev += 2;
+    }
+    double avgDevPercent = (countDev > 0) ? (totalDev / countDev) * 100.0 : 0.0;
+
+
+
+
+    QStringList rowCoefs;
+    rowCoefs << "";
 
     for (const Sensor &s : m_sensors) {
-        // Добавляем информацию о коэффициентах в заголовок (опционально, для удобства)
-        QString prefix = s.name; // Например "Sensor 1"
+        rowCoefs << "";
+        rowCoefs << "";
 
-        header << (prefix + " Raw A")
-               << (prefix + " Raw B")
-               << (prefix + " Corr A (x" + QString::number(s.kA, 'f', 3) + ")")
-               << (prefix + " Corr B (x" + QString::number(s.kB, 'f', 3) + ")");
+        rowCoefs << ("x" + QString::number(s.kA, 'f', 4));
+        rowCoefs << ("x" + QString::number(s.kB, 'f', 4));
     }
 
-    // Используем ';' как разделитель (стандарт для Excel в РФ/Европе)
-    out << header.join(";") << "\n";
 
-    // 3. Собираем данные
-    // Находим максимальное количество строк (на случай рассинхрона датчиков)
+    rowCoefs << "";
+    rowCoefs << "GLOBAL REFERENCE:";
+    rowCoefs << QString::number(m_globalReference, 'f', 2);
+
+    out << rowCoefs.join(";") << "\n";
+
+
+    QStringList rowHeaders;
+    rowHeaders << "Time (s)";
+
+    for (const Sensor &s : m_sensors) {
+        QString p = s.name;
+        rowHeaders << (p + " Raw A") << (p + " Raw B") << (p + " Corr A") << (p + " Corr B");
+    }
+
+
+    rowHeaders << ""; // Пустая колонка-разделитель
+    rowHeaders << "AVG ERROR (%):";
+    rowHeaders << QString::number(avgDevPercent, 'f', 2) + "%";
+
+    out << rowHeaders.join(";") << "\n";
+
+
+
     int maxRows = 0;
-    for(const auto& s : m_sensors) {
-        if(s.data.size() > maxRows) maxRows = s.data.size();
-    }
+    for(const auto& s : m_sensors) if(s.data.size() > maxRows) maxRows = s.data.size();
 
     for (int i = 0; i < maxRows; ++i) {
         QStringList row;
 
-        // Берем время из первого датчика (или 0, если данных нет)
-        double timeVal = 0.0;
-        if (!m_sensors.isEmpty() && i < m_sensors[0].data.size()) {
-            timeVal = m_sensors[0].data[i].time;
-        }
-
-        // Записываем время (заменяем точку на запятую для Excel, если нужно, но пока оставим стандарт)
-        row << QString::number(timeVal, 'f', 3);
+        double t = (!m_sensors.isEmpty() && i < m_sensors[0].data.size()) ? m_sensors[0].data[i].time : 0.0;
+        row << QString::number(t, 'f', 3);
 
         for (const Sensor &s : m_sensors) {
             if (i < s.data.size()) {
                 const DataPoint &p = s.data[i];
-
-                // Сырые данные (как в JSON "raw_A", "raw_B")
-                row << QString::number(p.v1, 'f', 0); // Обычно сырые - целые числа
-                row << QString::number(p.v2, 'f', 0);
-
-                // Скорректированные данные (как в JSON "corr_A", "corr_B")
-                row << QString::number(p.v1_corr, 'f', 2);
-                row << QString::number(p.v2_corr, 'f', 2);
+                row << QString::number(p.v1, 'f', 0);      // Raw A
+                row << QString::number(p.v2, 'f', 0);      // Raw B
+                row << QString::number(p.v1_corr, 'f', 2); // Corr A
+                row << QString::number(p.v2_corr, 'f', 2); // Corr B
             } else {
-                // Если данные у этого датчика кончились раньше
-                row << "" << "" << "" << "";
+                row << "" << "" << "" << ""; // Если данные кончились
             }
         }
+
+
         out << row.join(";") << "\n";
     }
 
     file.close();
-    qInfo() << "Full CSV Export completed:" << path;
 }
-
 
 
 QVariantMap SensorModel::getSensorStats(int index) {
@@ -467,7 +479,8 @@ QVariantMap SensorModel::getSensorStats(int index) {
     map["name"] = s.name;
     map["kA"] = s.kA;
     map["kB"] = s.kB;
-    // Считаем погрешности в % для QML
+
+
     map["pA"] = qAbs(s.kA - 1.0) * 100.0;
     map["pB"] = qAbs(s.kB - 1.0) * 100.0;
 

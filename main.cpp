@@ -25,15 +25,10 @@ int main(int argc, char **argv) {
     SensorModel model;
 
     QString appPath = QCoreApplication::applicationDirPath();
-    QString txtPath = QDir(appPath).filePath("results.txt");
     QString qmlPath = QDir(appPath).filePath("Main.qml");
 
-    // Используем новый метод, который сделает TXT->JSON->Model
-    if (model.loadResultsFile(txtPath)) {
-        qInfo() << "[" << timer.elapsed() << "ms] Data pipeline (TXT->JSON->App) finished.";
-    } else {
-        qInfo() << "results.txt not found or failed to parse at:" << txtPath;
-    }
+
+
 
     QWidget window;
     window.setWindowTitle("Solar Sensor Analytics (JSON Pipeline)");
