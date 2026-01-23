@@ -85,42 +85,100 @@ void SensorModel::fillSeries(QAbstractSeries *series, int sensorIndex, bool useC
     xySeries->replace(points);
 }
 
+void SensorModel::calculateRanges() {
+    if (m_sensors.isEmpty()) return;
+
+    // Инициализируем экстремальными значениями
+    double tMin = std::numeric_limits<double>::max();
+    double tMax = std::numeric_limits<double>::lowest();
+    double vMin = std::numeric_limits<double>::max();
+    double vMax = std::numeric_limits<double>::lowest();
+
+    for (const Sensor &s : m_sensors) {
+        for (const DataPoint &p : s.data) {
+            // Время
+            if (p.time < tMin) tMin = p.time;
+            if (p.time > tMax) tMax = p.time;
+
+            // Значения (проверяем все: v1, v2, и скорректированные, чтобы график не обрезался)
+            // Можно проверять только v1/v2 если режим просмотра меняется редко,
+            // но лучше охватить весь диапазон сразу.
+            double localMin = std::min({p.v1, p.v2, p.v1_corr, p.v2_corr});
+            double localMax = std::max({p.v1, p.v2, p.v1_corr, p.v2_corr});
+
+            if (localMin < vMin) vMin = localMin;
+            if (localMax > vMax) vMax = localMax;
+        }
+    }
+
+    // Добавляем небольшой отступ (5%), чтобы график не прилипал к краям
+    double padding = (vMax - vMin) * 0.05;
+    if (padding == 0) padding = 1.0; // Защита от плоской линии
+
+    m_minTime = tMin;
+    m_maxTime = tMax;
+    m_minValue = vMin - padding;
+    // Если хотите, чтобы график начинался от 0 (для сенсоров это часто полезно):
+    // m_minValue = (vMin < 0) ? vMin - padding : 0;
+
+    m_maxValue = vMax + padding;
+
+    emit dataRangeChanged(); // Сообщаем QML
+}
+
 double SensorModel::safeDivide(double target, double current) {
     return (qAbs(current) > 1e-6) ? (target / current) : 1.0;
 }
 
 void SensorModel::preCalculateCalibration() {
     if (m_sensors.isEmpty()) return;
+
     int sensorCount = m_sensors.size();
-    QVector<double> avgH1(sensorCount, 0.0);
-    QVector<double> avgH2(sensorCount, 0.0);
+    QVector<double> avgHemisphere1(sensorCount, 0.0);
+    QVector<double> avgHemisphere2(sensorCount, 0.0);
     double totalIntensitySum = 0.0;
 
+    // 1. Считаем средние
     for (int i = 0; i < sensorCount; i++) {
         const Sensor &sensor = m_sensors.at(i);
         if (sensor.data.isEmpty()) continue;
+
         double sumH1 = 0, sumH2 = 0;
         for (const DataPoint &dp : sensor.data) {
             sumH1 += dp.v1;
             sumH2 += dp.v2;
         }
-        avgH1[i] = sumH1 / sensor.data.size();
-        avgH2[i] = sumH2 / sensor.data.size();
-        totalIntensitySum += (avgH1[i] + avgH2[i]);
+
+        double size = static_cast<double>(sensor.data.size());
+        avgHemisphere1[i] = sumH1 / size;
+        avgHemisphere2[i] = sumH2 / size;
+
+        double intensity = avgHemisphere1[i] + avgHemisphere2[i];
+        totalIntensitySum += intensity;
     }
 
-    double referenceValue = totalIntensitySum / sensorCount;
-    double halfRef = referenceValue / 2.0;
+    // 2. Считаем эталон
+    m_globalReference = totalIntensitySum / sensorCount; // Сохраняем в переменную класса
+    double halfRef = m_globalReference / 2.0;
 
+    // 3. Расчет коэффициентов и применение
     for (int i = 0; i < sensorCount; ++i) {
         Sensor &s = m_sensors[i];
-        double k1 = safeDivide(halfRef, avgH1[i]);
-        double k2 = safeDivide(halfRef, avgH2[i]);
+
+        double k1 = safeDivide(halfRef, avgHemisphere1[i]);
+        double k2 = safeDivide(halfRef, avgHemisphere2[i]);
+
+        // !!! СОХРАНЯЕМ КОЭФФИЦИЕНТЫ !!!
+        s.kA = k1;
+        s.kB = k2;
+
         for (DataPoint &dp : s.data) {
             dp.v1_corr = dp.v1 * k1;
             dp.v2_corr = dp.v2 * k2;
         }
     }
+
+    qInfo() << "Calibration calculated. Global Reference:" << m_globalReference;
 }
 
 bool SensorModel::parseTxtInternal(const QString &txtFilePath) {
@@ -187,6 +245,7 @@ bool SensorModel::parseTxtInternal(const QString &txtFilePath) {
     std::sort(keys.begin(), keys.end());
     for (int key : keys) m_sensors.append(tempSensors[key]);
     preCalculateCalibration();
+    calculateRanges();
     endResetModel();
     return true;
 }
@@ -239,3 +298,44 @@ void SensorModel::generateReport(int index) {
         f.close();
     }
 }
+
+// QVariantMap SensorModel::getSensorStats(int index) {
+//     QVariantMap map;
+
+//     // Если выбраны "Все сенсоры" (index == -1)
+//     if (index < 0 || index >= m_sensors.size()) {
+//         map["type"] = "all";
+//         map["reference"] = m_globalReference; // Глобальный эталон яркости
+
+//         // Считаем средний разброс коэффициентов (насколько сенсоры "кривые" в среднем)
+//         double totalDev = 0;
+//         int count = 0;
+//         for(const Sensor &s : m_sensors) {
+//             // Отклонение от 1.0 (идеала)
+//             totalDev += qAbs(1.0 - s.kA) + qAbs(1.0 - s.kB);
+//             count += 2;
+//         }
+//         double avgDev = (count > 0) ? (totalDev / count) : 0.0;
+//         map["avgCorrection"] = avgDev;
+//         return map;
+//     }
+
+//     // Если выбран конкретный сенсор
+//     const Sensor &s = m_sensors.at(index);
+//     map["type"] = "single";
+//     map["name"] = s.name;
+//     map["kA"] = s.kA;
+//     map["kB"] = s.kB;
+
+//     // Дополнительно можно вернуть среднее сырое значение
+//     double rawAvgA = 0, rawAvgB = 0;
+//     if (!s.data.isEmpty()) {
+//         for(const auto& p : s.data) { rawAvgA += p.v1; rawAvgB += p.v2; }
+//         rawAvgA /= s.data.size();
+//         rawAvgB /= s.data.size();
+//     }
+//     map["rawA"] = rawAvgA;
+//     map["rawB"] = rawAvgB;
+
+//     return map;
+// }

@@ -57,6 +57,8 @@ Rectangle {
             }
         }
 
+
+
         // РАБОЧАЯ ОБЛАСТЬ
         RowLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
@@ -94,16 +96,26 @@ Rectangle {
 
                     // Оси
                     ValueAxis {
-                        id: axisX
-                        titleText: "Время (с)"
-                        min: 0
-                        max: 10 // Начальное значение, изменится программно
-                    }
+                            id: axisX
+                            titleText: "Время (с)"
+                            labelFormat: "%.1f"
+
+                            // ПРИВЯЗКА К C++
+                            min: sensorModel.minTime
+                            max: sensorModel.maxTime
+
+                            tickCount: 10 // Количество делений сетки
+                        }
                     ValueAxis {
-                        id: axisY
-                        titleText: "Значение"
-                        min: 0
-                        max: 100 // Начальное значение, изменится программно
+                           id: axisY
+                           titleText: "Значение"
+                           labelFormat: "%.0f"
+
+                           // ПРИВЯЗКА К C++
+                           min: sensorModel.minValue
+                           max: sensorModel.maxValue
+
+                           tickCount: 5
                     }
 
                     function updateChart() {
@@ -133,8 +145,8 @@ Rectangle {
                         }
 
                         // ВАЖНО: Автоматическое масштабирование осей под добавленные данные
-                        axisX.applyNiceNumbers();
-                        axisY.applyNiceNumbers();
+                        // axisX.applyNiceNumbers();
+                        // axisY.applyNiceNumbers();
 
                         // Если автоматика не сработала, принудительно масштабируем по всем сериям:
                         if (chart.count > 0) {
@@ -195,10 +207,12 @@ Rectangle {
         // Автомасштабирование осей
         // (Для идеальной скорости лучше считать Min/Max в C++ и отдавать сюда,
         // но ChartView сам умеет подстраиваться, если ему не мешать, или можно установить фиксированные)
-        axisX.applyNiceNumbers();
-        axisY.applyNiceNumbers();
+        //axisX.applyNiceNumbers();
+        //axisY.applyNiceNumbers();
     }
 
     Component.onCompleted: updateTimer.start()
     Timer { id: updateTimer; interval: 200; onTriggered: updateChart() }
+
+
 }
