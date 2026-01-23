@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QtMath>
 #include <QFileInfo>
+#include <QDateTime> // !!! ВАЖНО ДЛЯ ЭКСПОРТА JSON
 
 SensorModel::SensorModel(QObject *parent) : QAbstractListModel(parent) {}
 
@@ -39,29 +40,90 @@ QHash<int, QByteArray> SensorModel::roleNames() const {
     return roles;
 }
 
-// Вспомогательный метод для QML (если нужно передавать сырые данные)
 QVariant SensorModel::sensorDataToVariantList(const Sensor &s) const {
-    QVariantList list;
-    // Оптимизация: не передаем огромные списки в QML без нужды,
-    // графики рисуются через C++ (fillSeries)
-    return list;
+    return QVariantList(); // Оптимизация: данные не гоняем через модель в QML
 }
 
 // ---------------------------------------------------------
-// ШАГ 1: Конвертация TXT -> JSON
+// ЭКСПОРТ JSON (С коэффициентами и статистикой)
+// ---------------------------------------------------------
+void SensorModel::exportToJson(const QString &fileUrl) {
+    QString path = QUrl(fileUrl).toLocalFile();
+    if (path.isEmpty()) path = fileUrl;
+    if (!path.endsWith(".json", Qt::CaseInsensitive)) path += ".json";
+
+    // 1. Статистика
+    double totalDev = 0;
+    int count = 0;
+    for(const Sensor &s : m_sensors) {
+        totalDev += qAbs(1.0 - s.kA) + qAbs(1.0 - s.kB);
+        count += 2;
+    }
+    double avgDevPercent = (count > 0) ? (totalDev / count) * 100.0 : 0.0;
+
+    QJsonObject statsObj;
+    statsObj["global_reference_value"] = m_globalReference;
+    statsObj["average_system_deviation_percent"] = QString::number(avgDevPercent, 'f', 2).toDouble();
+    statsObj["total_sensors_count"] = m_sensors.size();
+
+    // 2. Сенсоры
+    QJsonArray sensorsArr;
+    for (const Sensor &s : m_sensors) {
+        QJsonObject sObj;
+        sObj["id"] = s.id;
+        sObj["name"] = s.name;
+
+        QJsonObject calibObj;
+        calibObj["coeff_A"] = s.kA;
+        calibObj["coeff_B"] = s.kB;
+        calibObj["error_A_percent"] = QString::number((s.kA - 1.0) * 100.0, 'f', 2).toDouble();
+        calibObj["error_B_percent"] = QString::number((s.kB - 1.0) * 100.0, 'f', 2).toDouble();
+        sObj["calibration"] = calibObj;
+
+        QJsonArray dataArr;
+        for (const DataPoint &dp : s.data) {
+            QJsonObject p;
+            p["t"] = QString::number(dp.time, 'f', 3).toDouble();
+            p["raw_A"] = dp.v1;
+            p["raw_B"] = dp.v2;
+            p["corr_A"] = QString::number(dp.v1_corr, 'f', 2).toDouble();
+            p["corr_B"] = QString::number(dp.v2_corr, 'f', 2).toDouble();
+            dataArr.append(p);
+        }
+        sObj["data"] = dataArr;
+        sensorsArr.append(sObj);
+    }
+
+    QJsonObject root;
+    root["meta_info"] = QJsonObject{
+        {"exported_at", QDateTime::currentDateTime().toString(Qt::ISODate)},
+        {"app_name", "SolarSensors Analytics"}
+    };
+    root["statistics"] = statsObj;
+    root["sensors"] = sensorsArr;
+
+    QFile file(path);
+    if (file.open(QIODevice::WriteOnly)) {
+        QJsonDocument doc(root);
+        file.write(doc.toJson(QJsonDocument::Indented));
+        file.close();
+        qInfo() << "Exported JSON to:" << path;
+    } else {
+        qWarning() << "Failed to save JSON:" << path;
+    }
+}
+
+// ---------------------------------------------------------
+// Конвертация TXT -> JSON
 // ---------------------------------------------------------
 bool SensorModel::convertTxtToJson(const QString &txtFilePath, const QString &jsonFilePath) {
     QFile file(txtFilePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Could not open TXT file:" << txtFilePath;
-        return false;
-    }
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
 
     QTextStream in(&file);
     QString headerLine;
     bool headerFound = false;
 
-    // Поиск заголовка
     while (!in.atEnd()) {
         QString line = in.readLine();
         if (line.contains("Time", Qt::CaseInsensitive) && line.contains("_A", Qt::CaseInsensitive)) {
@@ -70,14 +132,11 @@ bool SensorModel::convertTxtToJson(const QString &txtFilePath, const QString &js
             break;
         }
     }
-
     if (!headerFound) return false;
 
-    // Парсинг заголовков столбцов
     QStringList headers = headerLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-    struct ColInfo { int sensorId; QString type; }; // type: "A" или "B"
+    struct ColInfo { int sensorId; QString type; };
     QMap<int, ColInfo> colMap;
-
     QRegularExpression re("S(\\d+)_([AB])", QRegularExpression::CaseInsensitiveOption);
 
     for (int i = 0; i < headers.size(); ++i) {
@@ -87,50 +146,28 @@ bool SensorModel::convertTxtToJson(const QString &txtFilePath, const QString &js
         }
     }
 
-    // Временное хранилище данных: Map<SensorID, List of Objects>
-    // Используем QJsonObject для каждой точки, но группируем по ID сенсора
     QMap<int, QJsonArray> sensorDataArrays;
-
     while (!in.atEnd()) {
         QString line = in.readLine().trimmed();
         if (line.isEmpty()) continue;
-
-        // Заменяем запятую на точку для корректного парсинга чисел
         line.replace(',', '.');
-
         QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
         if (parts.size() < 2) continue;
 
         double time = parts[0].toDouble();
-
-        // Проходим по столбцам и раскидываем значения по сенсорам
-        // Сложность: в одной строке данные для всех сенсоров сразу.
-        // Нам нужно преобразовать это в структуру: Sensor -> Array({time, v1, v2})
-
-        // Сначала собираем временную строку для каждого сенсора
         QMap<int, QJsonObject> rowPoints;
 
         for (int i = 1; i < parts.size(); ++i) {
             if (!colMap.contains(i)) continue;
-
             ColInfo info = colMap[i];
             double val = parts[i].toDouble();
-
             if (!rowPoints.contains(info.sensorId)) {
-                QJsonObject p;
-                p["t"] = time;
-                p["v1"] = 0.0;
-                p["v2"] = 0.0;
+                QJsonObject p; p["t"] = time; p["v1"] = 0.0; p["v2"] = 0.0;
                 rowPoints[info.sensorId] = p;
             }
-
-            QJsonObject p = rowPoints[info.sensorId];
-            if (info.type == "A") p["v1"] = val;
-            else p["v2"] = val;
-            rowPoints[info.sensorId] = p;
+            if (info.type == "A") rowPoints[info.sensorId]["v1"] = val;
+            else rowPoints[info.sensorId]["v2"] = val;
         }
-
-        // Добавляем точки в массивы сенсоров
         auto it = rowPoints.constBegin();
         while (it != rowPoints.constEnd()) {
             sensorDataArrays[it.key()].append(it.value());
@@ -139,14 +176,13 @@ bool SensorModel::convertTxtToJson(const QString &txtFilePath, const QString &js
     }
     file.close();
 
-    // Формируем итоговый JSON объект
     QJsonArray sensorsArray;
     auto it = sensorDataArrays.constBegin();
     while (it != sensorDataArrays.constEnd()) {
         QJsonObject sensorObj;
         sensorObj["id"] = it.key();
         sensorObj["name"] = QString("Sensor %1").arg(it.key());
-        sensorObj["data"] = it.value(); // Массив точек {t, v1, v2}
+        sensorObj["data"] = it.value();
         sensorsArray.append(sensorObj);
         ++it;
     }
@@ -154,27 +190,17 @@ bool SensorModel::convertTxtToJson(const QString &txtFilePath, const QString &js
     QJsonObject root;
     root["sensors"] = sensorsArray;
 
-    // Запись JSON на диск
     QFile jsonFile(jsonFilePath);
-    if (!jsonFile.open(QIODevice::WriteOnly)) {
-        qWarning() << "Could not write JSON file:" << jsonFilePath;
-        return false;
-    }
+    if (!jsonFile.open(QIODevice::WriteOnly)) return false;
     QJsonDocument doc(root);
-    jsonFile.write(doc.toJson(QJsonDocument::Compact)); // Compact для экономии места
+    jsonFile.write(doc.toJson(QJsonDocument::Indented));
     jsonFile.close();
-
-    qInfo() << "Converted TXT to JSON:" << jsonFilePath;
     return true;
 }
 
-// ---------------------------------------------------------
-// ШАГ 2: Парсинг JSON -> C++ Model
-// ---------------------------------------------------------
 bool SensorModel::parseJsonInternal(const QString &jsonFilePath) {
     QFile file(jsonFilePath);
     if (!file.open(QIODevice::ReadOnly)) return false;
-
     QByteArray jsonData = file.readAll();
     file.close();
 
@@ -192,7 +218,6 @@ bool SensorModel::parseJsonInternal(const QString &jsonFilePath) {
         Sensor sensor;
         sensor.id = sObj["id"].toInt();
         sensor.name = sObj["name"].toString();
-
         QJsonArray dataArr = sObj["data"].toArray();
         sensor.data.reserve(dataArr.size());
 
@@ -202,7 +227,6 @@ bool SensorModel::parseJsonInternal(const QString &jsonFilePath) {
             dp.time = dObj["t"].toDouble();
             dp.v1 = dObj["v1"].toDouble();
             dp.v2 = dObj["v2"].toDouble();
-            // v1_corr и v2_corr будут рассчитаны позже в preCalculateCalibration
             dp.v1_corr = dp.v1;
             dp.v2_corr = dp.v2;
             sensor.data.append(dp);
@@ -210,69 +234,42 @@ bool SensorModel::parseJsonInternal(const QString &jsonFilePath) {
         m_sensors.append(sensor);
     }
 
-    // Сортировка по ID для порядка в списке
-    std::sort(m_sensors.begin(), m_sensors.end(), [](const Sensor& a, const Sensor& b){
-        return a.id < b.id;
-    });
+    std::sort(m_sensors.begin(), m_sensors.end(), [](const Sensor& a, const Sensor& b){ return a.id < b.id; });
 
-    preCalculateCalibration(); // Математика
-    calculateRanges();         // Границы для графика
+    preCalculateCalibration();
+    calculateRanges();
     endResetModel();
-
     return true;
 }
 
-// ---------------------------------------------------------
-// Основной метод, вызываемый из QML или main.cpp
-// ---------------------------------------------------------
 void SensorModel::importFromTxt(const QString &fileUrl) {
     QString txtPath = QUrl(fileUrl).toLocalFile();
     if (txtPath.isEmpty()) txtPath = fileUrl;
-
-    // Создаем путь для промежуточного JSON файла
     QFileInfo fi(txtPath);
     QString jsonPath = fi.absolutePath() + "/" + fi.baseName() + ".json";
 
-    qInfo() << "Starting import pipeline...";
-
-    // 1. TXT -> JSON
     if (convertTxtToJson(txtPath, jsonPath)) {
-        // 2. JSON -> App
-        if (parseJsonInternal(jsonPath)) {
-            qInfo() << "Import successful via JSON.";
-        } else {
-            qWarning() << "Failed to parse generated JSON.";
-        }
-    } else {
-        qWarning() << "Failed to convert TXT to JSON.";
+        parseJsonInternal(jsonPath);
     }
 }
 
-// Метод для автоматической загрузки при старте (использует тот же конвейер)
 bool SensorModel::loadResultsFile(const QString &filePath) {
     if (!QFile::exists(filePath)) return false;
     importFromTxt(filePath);
     return !m_sensors.isEmpty();
 }
 
-// ---------------------------------------------------------
-// Остальная логика (математика, графики) без изменений
-// ---------------------------------------------------------
-
 void SensorModel::fillSeries(QAbstractSeries *series, int sensorIndex, bool useCorrected, QString channel) {
     if (!series) return;
     QXYSeries *xySeries = qobject_cast<QXYSeries *>(series);
     if (!xySeries) return;
-
     if (sensorIndex < 0 || sensorIndex >= m_sensors.size()) return;
 
     const Sensor &s = m_sensors.at(sensorIndex);
     QList<QPointF> points;
     points.reserve(s.data.size());
-
     for (const DataPoint &dp : s.data) {
-        double val = (channel == "A") ? (useCorrected ? dp.v1_corr : dp.v1)
-                                      : (useCorrected ? dp.v2_corr : dp.v2);
+        double val = (channel == "A") ? (useCorrected ? dp.v1_corr : dp.v1) : (useCorrected ? dp.v2_corr : dp.v2);
         points.append(QPointF(dp.time, val));
     }
     xySeries->replace(points);
@@ -355,10 +352,7 @@ void SensorModel::exportToCsv(const QString &fileUrl) {
     }
 }
 
-void SensorModel::generateReport(int index) {
-    // Реализация отчета (оставляем как было или заглушку)
-}
-
+// СТАТИСТИКА (С расчет погрешности pA, pB)
 QVariantMap SensorModel::getSensorStats(int index) {
     QVariantMap map;
     if (index < 0 || index >= m_sensors.size()) {
@@ -373,13 +367,16 @@ QVariantMap SensorModel::getSensorStats(int index) {
         map["avgCorrection"] = (count > 0) ? (totalDev / count) : 0.0;
         return map;
     }
+
     const Sensor &s = m_sensors.at(index);
     map["type"] = "single";
     map["name"] = s.name;
     map["kA"] = s.kA;
     map["kB"] = s.kB;
-    map["pA"] = qAbs(1 - s.kA) * 100;
-    map["pB"] = qAbs(1 - s.kB) * 100;
+    // Считаем погрешности в % для QML
+    map["pA"] = (s.kA - 1.0) * 100.0;
+    map["pB"] = (s.kB - 1.0) * 100.0;
+
     double ra = 0, rb = 0;
     if (!s.data.isEmpty()) {
         for(const auto& p : s.data) { ra += p.v1; rb += p.v2; }

@@ -11,8 +11,16 @@ Rectangle {
 
     property int currentIndex: -1
     property string viewMode: "raw"
-    // Храним данные статистики
     property var currentStats: null
+
+    // Функция безопасного форматирования
+    function formatVal(val, points, prefix, suffix) {
+        if (val === undefined || val === null || isNaN(val)) {
+            return "";
+        }
+        var res = val.toFixed(points);
+        return (prefix || "") + res + (suffix || "");
+    }
 
     function getSensorColor(idx) {
         if (idx < 0) return "black";
@@ -23,11 +31,12 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-        // МЕНЮ (Верх)
+        // МЕНЮ
         Rectangle {
             Layout.fillWidth: true; Layout.preferredHeight: 35; color: "#343a40"; z: 100
             Row {
                 anchors.fill: parent; anchors.leftMargin: 10; spacing: 10
+
                 Button {
                     text: "Файл"
                     background: Rectangle { color: parent.down ? "#555" : "transparent" }
@@ -39,6 +48,7 @@ Rectangle {
                         MenuItem { text: "Экспорт JSON (с коэфф.)"; onTriggered: saveJsonDialog.open() }
                     }
                 }
+
                 Button {
                     text: "Вид"
                     background: Rectangle { color: parent.down ? "#555" : "transparent" }
@@ -49,6 +59,7 @@ Rectangle {
                         MenuItem { text: "Скорректированные"; checkable: true; checked: root.viewMode==="corrected"; onTriggered: { root.viewMode="corrected"; updateChart() } }
                     }
                 }
+
                 Text {
                     anchors.verticalCenter: parent.verticalCenter; leftPadding: 20
                     text: root.viewMode === "raw" ? "РЕЖИМ: СЫРЫЕ" : "РЕЖИМ: КОРРЕКЦИЯ"
@@ -61,7 +72,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
 
-            // 1. ЛЕВАЯ ПАНЕЛЬ (Список)
+            // 1. СПИСОК
             Rectangle {
                 Layout.preferredWidth: 260; Layout.fillHeight: true; color: "white"; border.color: "#ddd"
                 ColumnLayout {
@@ -84,7 +95,7 @@ Rectangle {
                 }
             }
 
-            // 2. ЦЕНТРАЛЬНАЯ ПАНЕЛЬ (График)
+            // 2. ГРАФИК
             Rectangle {
                 Layout.fillWidth: true; Layout.fillHeight: true; color: "white"; clip: true
                 ChartView {
@@ -111,7 +122,7 @@ Rectangle {
                 }
             }
 
-            // 3. ПРАВАЯ ПАНЕЛЬ (Статистика)
+            // 3. СТАТИСТИКА
             Rectangle {
                 Layout.preferredWidth: 240; Layout.fillHeight: true
                 color: "#f8f9fa"; border.color: "#ddd"
@@ -125,7 +136,6 @@ Rectangle {
                     }
                     Rectangle { Layout.fillWidth: true; height: 1; color: "#ccc" }
 
-                    // Данные
                     Item {
                         Layout.fillWidth: true; Layout.fillHeight: true
 
@@ -143,16 +153,17 @@ Rectangle {
                                 Item { height: 10; width: 1 }
                                 Text { text: "Глобальный эталон:"; color: "#555" }
                                 Text {
-                                    // БЕЗОПАСНАЯ ПРОВЕРКА
-                                    text: (root.currentStats && root.currentStats.reference !== undefined) ? root.currentStats.reference.toFixed(2) : "0"
+                                    text: root.currentStats ? formatVal(root.currentStats.reference, 2) : "0"
                                     font.pointSize: 14; font.bold: true; color: "#007bff"
                                 }
 
                                 Item { height: 10; width: 1 }
                                 Text { text: "Средняя коррекция:"; color: "#555" }
                                 Text {
-                                    // БЕЗОПАСНАЯ ПРОВЕРКА
-                                    text: (root.currentStats && root.currentStats.avgCorrection !== undefined) ? (root.currentStats.avgCorrection * 100).toFixed(2) + "%" : "0%"
+                                    // ПРОВЕРКА НА СУЩЕСТВОВАНИЕ СВОЙСТВА avgCorrection
+                                    text: (root.currentStats && root.currentStats.avgCorrection !== undefined)
+                                          ? formatVal(root.currentStats.avgCorrection * 100, 2, "", "%")
+                                          : "0%"
                                     font.pointSize: 14; font.bold: true; color: "#28a745"
                                 }
                                 Text {
@@ -175,21 +186,20 @@ Rectangle {
                                 RowLayout {
                                     Text { text: "Коэфф:"; color: "#555" }
                                     Text {
-                                        // БЕЗОПАСНАЯ ПРОВЕРКА
-                                        text: (root.currentStats && root.currentStats.kA !== undefined) ? "x" + root.currentStats.kA.toFixed(4) : ""
+                                        text: root.currentStats ? formatVal(root.currentStats.kA, 4, "x") : ""
                                         font.bold: true
                                     }
                                 }
                                 RowLayout {
                                     Text { text: "Погрешность:"; color: "#555" }
                                     Text {
-                                        // БЕЗОПАСНАЯ ПРОВЕРКА
-                                        text: (root.currentStats && root.currentStats.pA !== undefined) ? root.currentStats.pA.toFixed(0) + "%" : ""
+                                        text: root.currentStats ? formatVal(root.currentStats.pA, 1, "", "%") : ""
                                         font.bold: true
+                                        color: (root.currentStats && root.currentStats.pA > 0) ? "red" : "green"
                                     }
                                 }
                                 Text {
-                                    text: "Среднее сырое: " + ((root.currentStats && root.currentStats.rawA !== undefined) ? root.currentStats.rawA.toFixed(1) : "")
+                                    text: "Среднее сырое: " + (root.currentStats ? formatVal(root.currentStats.rawA, 1) : "")
                                     font.pixelSize: 11; color: "#666"
                                 }
 
@@ -200,21 +210,20 @@ Rectangle {
                                 RowLayout {
                                     Text { text: "Коэфф:"; color: "#555" }
                                     Text {
-                                        // БЕЗОПАСНАЯ ПРОВЕРКА
-                                        text: (root.currentStats && root.currentStats.kB !== undefined) ? "x" + root.currentStats.kB.toFixed(4) : ""
+                                        text: root.currentStats ? formatVal(root.currentStats.kB, 4, "x") : ""
                                         font.bold: true
                                     }
                                 }
                                 RowLayout {
                                     Text { text: "Погрешность:"; color: "#555" }
                                     Text {
-                                        // БЕЗОПАСНАЯ ПРОВЕРКА
-                                        text: (root.currentStats && root.currentStats.pB !== undefined) ? root.currentStats.pB.toFixed(0) + "%" : ""
+                                        text: root.currentStats ? formatVal(root.currentStats.pB, 1, "", "%") : ""
                                         font.bold: true
+                                        color: (root.currentStats && root.currentStats.pB > 0) ? "red" : "green"
                                     }
                                 }
                                 Text {
-                                    text: "Среднее сырое: " + ((root.currentStats && root.currentStats.rawB !== undefined) ? root.currentStats.rawB.toFixed(1) : "")
+                                    text: "Среднее сырое: " + (root.currentStats ? formatVal(root.currentStats.rawB, 1) : "")
                                     font.pixelSize: 11; color: "#666"
                                 }
                             }
@@ -228,15 +237,7 @@ Rectangle {
 
     Platform.FileDialog { id: openDialog; nameFilters: ["Text (*.txt)"]; onAccepted: { sensorModel.importFromTxt(file.toString()); updateChart(); } }
     Platform.FileDialog { id: saveDialog; fileMode: Platform.FileDialog.SaveFile; nameFilters: ["CSV (*.csv)"]; onAccepted: { sensorModel.exportToCsv(file.toString()); } }
-    Platform.FileDialog {
-        id: saveJsonDialog
-        fileMode: Platform.FileDialog.SaveFile
-        nameFilters: ["JSON (*.json)"]
-        onAccepted: {
-            // Вызов метода C++
-            sensorModel.exportToJson(file.toString());
-        }
-    }
+    Platform.FileDialog { id: saveJsonDialog; fileMode: Platform.FileDialog.SaveFile; nameFilters: ["JSON (*.json)"]; onAccepted: { sensorModel.exportToJson(file.toString()); } }
 
     function updateChart() {
         chart.removeAllSeries();
@@ -246,8 +247,7 @@ Rectangle {
             var count = sensorModel.rowCount();
             for(var i=0; i < count; i++) {
                 var idx = sensorModel.index(i,0);
-                var sName = sensorModel.data(idx, 258); // NameRole
-
+                var sName = sensorModel.data(idx, 258);
                 var s = chart.createSeries(ChartView.SeriesTypeLine, sName, axisX, axisY);
                 s.color = getSensorColor(i);
                 s.width = 2;
@@ -265,8 +265,6 @@ Rectangle {
             sB.style = Qt.DashLine;
             sensorModel.fillSeries(sB, currentIndex, isCorrected, "B");
         }
-
-        // Запрашиваем статистику для правой панели
         root.currentStats = sensorModel.getSensorStats(currentIndex);
     }
 

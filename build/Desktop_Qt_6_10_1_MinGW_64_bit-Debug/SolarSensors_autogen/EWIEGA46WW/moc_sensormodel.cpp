@@ -44,8 +44,7 @@ template <> constexpr inline auto SensorModel::qt_create_metaobjectdata<qt_meta_
         "importFromTxt",
         "fileUrl",
         "exportToCsv",
-        "generateReport",
-        "index",
+        "exportToJson",
         "fillSeries",
         "QAbstractSeries*",
         "series",
@@ -54,6 +53,7 @@ template <> constexpr inline auto SensorModel::qt_create_metaobjectdata<qt_meta_
         "channel",
         "getSensorStats",
         "QVariantMap",
+        "index",
         "minTime",
         "maxTime",
         "minValue",
@@ -72,17 +72,17 @@ template <> constexpr inline auto SensorModel::qt_create_metaobjectdata<qt_meta_
         QtMocHelpers::MethodData<void(const QString &)>(5, 2, QMC::AccessPublic, QMetaType::Void, {{
             { QMetaType::QString, 4 },
         }}),
-        // Method 'generateReport'
-        QtMocHelpers::MethodData<void(int)>(6, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::Int, 7 },
+        // Method 'exportToJson'
+        QtMocHelpers::MethodData<void(const QString &)>(6, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::QString, 4 },
         }}),
         // Method 'fillSeries'
-        QtMocHelpers::MethodData<void(QAbstractSeries *, int, bool, QString)>(8, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { 0x80000000 | 9, 10 }, { QMetaType::Int, 11 }, { QMetaType::Bool, 12 }, { QMetaType::QString, 13 },
+        QtMocHelpers::MethodData<void(QAbstractSeries *, int, bool, QString)>(7, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { 0x80000000 | 8, 9 }, { QMetaType::Int, 10 }, { QMetaType::Bool, 11 }, { QMetaType::QString, 12 },
         }}),
         // Method 'getSensorStats'
-        QtMocHelpers::MethodData<QVariantMap(int)>(14, 2, QMC::AccessPublic, 0x80000000 | 15, {{
-            { QMetaType::Int, 7 },
+        QtMocHelpers::MethodData<QVariantMap(int)>(13, 2, QMC::AccessPublic, 0x80000000 | 14, {{
+            { QMetaType::Int, 15 },
         }}),
     };
     QtMocHelpers::UintData qt_properties {
@@ -120,7 +120,7 @@ void SensorModel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         case 0: _t->dataRangeChanged(); break;
         case 1: _t->importFromTxt((*reinterpret_cast<std::add_pointer_t<QString>>(_a[1]))); break;
         case 2: _t->exportToCsv((*reinterpret_cast<std::add_pointer_t<QString>>(_a[1]))); break;
-        case 3: _t->generateReport((*reinterpret_cast<std::add_pointer_t<int>>(_a[1]))); break;
+        case 3: _t->exportToJson((*reinterpret_cast<std::add_pointer_t<QString>>(_a[1]))); break;
         case 4: _t->fillSeries((*reinterpret_cast<std::add_pointer_t<QAbstractSeries*>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<int>>(_a[2])),(*reinterpret_cast<std::add_pointer_t<bool>>(_a[3])),(*reinterpret_cast<std::add_pointer_t<QString>>(_a[4]))); break;
         case 5: { QVariantMap _r = _t->getSensorStats((*reinterpret_cast<std::add_pointer_t<int>>(_a[1])));
             if (_a[0]) *reinterpret_cast<QVariantMap*>(_a[0]) = std::move(_r); }  break;

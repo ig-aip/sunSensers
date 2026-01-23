@@ -15,9 +15,7 @@ C:/Users/User/Desktop/1/sunSensers/sensormodel.h
  mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonArray
  mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonDocument
  mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonObject
- mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonValue
  mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QObject
- mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QPointF
  mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QString
  mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QVariant
  mdp:C:/Qt/6.10.1/mingw_64/include/QtCore/QVector

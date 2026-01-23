@@ -14,9 +14,7 @@ C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/So
   C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonArray \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonDocument \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonObject \
-  C:/Qt/6.10.1/mingw_64/include/QtCore/QJsonValue \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QObject \
-  C:/Qt/6.10.1/mingw_64/include/QtCore/QPointF \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QString \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QVariant \
   C:/Qt/6.10.1/mingw_64/include/QtCore/QVector \
