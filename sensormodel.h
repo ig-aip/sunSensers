@@ -59,6 +59,8 @@ public:
     // Используем QAbstractSeries
     Q_INVOKABLE void fillSeries(QAbstractSeries *series, int sensorIndex, bool useCorrected, QString channel);
 
+    Q_INVOKABLE QVariantMap getSensorStats(int index);
+
     double minTime() const { return m_minTime; }
     double maxTime() const { return m_maxTime; }
     double minValue() const { return m_minValue; }

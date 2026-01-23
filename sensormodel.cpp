@@ -299,43 +299,43 @@ void SensorModel::generateReport(int index) {
     }
 }
 
-// QVariantMap SensorModel::getSensorStats(int index) {
-//     QVariantMap map;
+QVariantMap SensorModel::getSensorStats(int index) {
+    QVariantMap map;
 
-//     // Если выбраны "Все сенсоры" (index == -1)
-//     if (index < 0 || index >= m_sensors.size()) {
-//         map["type"] = "all";
-//         map["reference"] = m_globalReference; // Глобальный эталон яркости
+    // Если выбраны "Все сенсоры" (index == -1)
+    if (index < 0 || index >= m_sensors.size()) {
+        map["type"] = "all";
+        map["reference"] = m_globalReference; // Глобальный эталон яркости
 
-//         // Считаем средний разброс коэффициентов (насколько сенсоры "кривые" в среднем)
-//         double totalDev = 0;
-//         int count = 0;
-//         for(const Sensor &s : m_sensors) {
-//             // Отклонение от 1.0 (идеала)
-//             totalDev += qAbs(1.0 - s.kA) + qAbs(1.0 - s.kB);
-//             count += 2;
-//         }
-//         double avgDev = (count > 0) ? (totalDev / count) : 0.0;
-//         map["avgCorrection"] = avgDev;
-//         return map;
-//     }
+        // Считаем средний разброс коэффициентов (насколько сенсоры "кривые" в среднем)
+        double totalDev = 0;
+        int count = 0;
+        for(const Sensor &s : m_sensors) {
+            // Отклонение от 1.0 (идеала)
+            totalDev += qAbs(1.0 - s.kA) + qAbs(1.0 - s.kB);
+            count += 2;
+        }
+        double avgDev = (count > 0) ? (totalDev / count) : 0.0;
+        map["avgCorrection"] = avgDev;
+        return map;
+    }
 
-//     // Если выбран конкретный сенсор
-//     const Sensor &s = m_sensors.at(index);
-//     map["type"] = "single";
-//     map["name"] = s.name;
-//     map["kA"] = s.kA;
-//     map["kB"] = s.kB;
+    // Если выбран конкретный сенсор
+    const Sensor &s = m_sensors.at(index);
+    map["type"] = "single";
+    map["name"] = s.name;
+    map["kA"] = s.kA;
+    map["kB"] = s.kB;
 
-//     // Дополнительно можно вернуть среднее сырое значение
-//     double rawAvgA = 0, rawAvgB = 0;
-//     if (!s.data.isEmpty()) {
-//         for(const auto& p : s.data) { rawAvgA += p.v1; rawAvgB += p.v2; }
-//         rawAvgA /= s.data.size();
-//         rawAvgB /= s.data.size();
-//     }
-//     map["rawA"] = rawAvgA;
-//     map["rawB"] = rawAvgB;
+    // Дополнительно можно вернуть среднее сырое значение
+    double rawAvgA = 0, rawAvgB = 0;
+    if (!s.data.isEmpty()) {
+        for(const auto& p : s.data) { rawAvgA += p.v1; rawAvgB += p.v2; }
+        rawAvgA /= s.data.size();
+        rawAvgB /= s.data.size();
+    }
+    map["rawA"] = rawAvgA;
+    map["rawB"] = rawAvgB;
 
-//     return map;
-// }
+    return map;
+}

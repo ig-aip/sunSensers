@@ -11,6 +11,8 @@ Rectangle {
 
     property int currentIndex: -1
     property string viewMode: "raw"
+    // Храним данные статистики
+    property var currentStats: null
 
     function getSensorColor(idx) {
         if (idx < 0) return "black";
@@ -21,12 +23,11 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-        // МЕНЮ
+        // МЕНЮ (Верх)
         Rectangle {
             Layout.fillWidth: true; Layout.preferredHeight: 35; color: "#343a40"; z: 100
             Row {
                 anchors.fill: parent; anchors.leftMargin: 10; spacing: 10
-
                 Button {
                     text: "Файл"
                     background: Rectangle { color: parent.down ? "#555" : "transparent" }
@@ -37,7 +38,6 @@ Rectangle {
                         MenuItem { text: "Экспорт (.csv)"; onTriggered: saveDialog.open() }
                     }
                 }
-
                 Button {
                     text: "Вид"
                     background: Rectangle { color: parent.down ? "#555" : "transparent" }
@@ -48,7 +48,6 @@ Rectangle {
                         MenuItem { text: "Скорректированные"; checkable: true; checked: root.viewMode==="corrected"; onTriggered: { root.viewMode="corrected"; updateChart() } }
                     }
                 }
-
                 Text {
                     anchors.verticalCenter: parent.verticalCenter; leftPadding: 20
                     text: root.viewMode === "raw" ? "РЕЖИМ: СЫРЫЕ" : "РЕЖИМ: КОРРЕКЦИЯ"
@@ -57,13 +56,11 @@ Rectangle {
             }
         }
 
-
-
-        // РАБОЧАЯ ОБЛАСТЬ
+        // РАБОЧАЯ ОБЛАСТЬ (Лево - Центр - Право)
         RowLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
 
-            // Левая панель
+            // 1. ЛЕВАЯ ПАНЕЛЬ (Список)
             Rectangle {
                 Layout.preferredWidth: 260; Layout.fillHeight: true; color: "white"; border.color: "#ddd"
                 ColumnLayout {
@@ -86,7 +83,7 @@ Rectangle {
                 }
             }
 
-            // График
+            // 2. ЦЕНТРАЛЬНАЯ ПАНЕЛЬ (График)
             Rectangle {
                 Layout.fillWidth: true; Layout.fillHeight: true; color: "white"; clip: true
                 ChartView {
@@ -94,69 +91,116 @@ Rectangle {
                     animationOptions: ChartView.NoAnimation;
                     legend.alignment: Qt.AlignBottom
 
-                    // Оси
                     ValueAxis {
-                            id: axisX
-                            titleText: "Время (с)"
-                            labelFormat: "%.1f"
-
-                            // ПРИВЯЗКА К C++
-                            min: sensorModel.minTime
-                            max: sensorModel.maxTime
-
-                            tickCount: 10 // Количество делений сетки
-                        }
-                    ValueAxis {
-                           id: axisY
-                           titleText: "Значение"
-                           labelFormat: "%.0f"
-
-                           // ПРИВЯЗКА К C++
-                           min: sensorModel.minValue
-                           max: sensorModel.maxValue
-
-                           tickCount: 5
+                        id: axisX
+                        titleText: "Время (с)"
+                        labelFormat: "%.1f"
+                        min: sensorModel.minTime
+                        max: sensorModel.maxTime
+                        tickCount: 10
                     }
+                    ValueAxis {
+                        id: axisY
+                        titleText: "Значение"
+                        labelFormat: "%.0f"
+                        min: sensorModel.minValue
+                        max: sensorModel.maxValue
+                        tickCount: 5
+                    }
+                }
+            }
 
-                    function updateChart() {
-                        chart.removeAllSeries();
-                        var isCorrected = (root.viewMode === "corrected");
+            // 3. ПРАВАЯ ПАНЕЛЬ (Статистика)
+            Rectangle {
+                Layout.preferredWidth: 240; Layout.fillHeight: true
+                color: "#f8f9fa"; border.color: "#ddd"
 
-                        var minX = 999999, maxX = -999999;
-                        var minY = 999999, maxY = -999999;
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 15; spacing: 10
 
-                        if(currentIndex === -1) {
-                            var count = sensorModel.rowCount();
-                            for(var i=0; i < count; i++) {
-                                var s = chart.createSeries(ChartView.SeriesTypeLine, "Датчик " + (i+1), axisX, axisY);
-                                s.color = getSensorColor(i);
-                                s.width = 2;
-                                sensorModel.fillSeries(s, i, isCorrected, "A");
+                    Text {
+                        text: "Информация"; font.pointSize: 14; font.bold: true
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: "#ccc" }
+
+                    // Данные
+                    Item {
+                        Layout.fillWidth: true; Layout.fillHeight: true
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            visible: root.currentStats !== null
+                            spacing: 15
+
+                            // --- Режим: ВСЕ СЕНСОРЫ ---
+                            ColumnLayout {
+                                visible: root.currentStats && root.currentStats.type === "all"
+                                spacing: 5
+                                Text { text: "Режим: Общий обзор"; font.bold: true; color: "#555" }
+
+                                Item { height: 10; width: 1 }
+                                Text { text: "Глобальный эталон:"; color: "#555" }
+                                Text {
+                                    text: (root.currentStats ? root.currentStats.reference.toFixed(2) : "0")
+                                    font.pointSize: 14; font.bold: true; color: "#007bff"
+                                }
+
+                                Item { height: 10; width: 1 }
+                                Text { text: "Средняя коррекция:"; color: "#555" }
+                                Text {
+                                    text: root.currentStats ? (root.currentStats.avgCorrection * 100).toFixed(2) + "%" : "0%"
+                                    font.pointSize: 14; font.bold: true; color: "#28a745"
+                                }
+                                Text {
+                                    text: "(отклонение от нормы)";
+                                    font.pixelSize: 10; color: "#888"; wrapMode: Text.WordWrap; Layout.fillWidth: true
+                                }
                             }
-                        } else {
-                            var sA = chart.createSeries(ChartView.SeriesTypeLine, "Канал A", axisX, axisY);
-                            sA.color = getSensorColor(currentIndex);
-                            sensorModel.fillSeries(sA, currentIndex, isCorrected, "A");
 
-                            var sB = chart.createSeries(ChartView.SeriesTypeLine, "Канал B", axisX, axisY);
-                            sB.color = Qt.lighter(sA.color, 1.5);
-                            sB.style = Qt.DashLine;
-                            sensorModel.fillSeries(sB, currentIndex, isCorrected, "B");
-                        }
+                            // --- Режим: ОДИН СЕНСОР ---
+                            ColumnLayout {
+                                visible: root.currentStats && root.currentStats.type === "single"
+                                spacing: 8
+                                Text { text: "Выбран сенсор:"; font.bold: true; color: "#555" }
+                                Text { text: root.currentStats ? root.currentStats.name : ""; font.pointSize: 12; font.bold: true }
 
-                        // ВАЖНО: Автоматическое масштабирование осей под добавленные данные
-                        // axisX.applyNiceNumbers();
-                        // axisY.applyNiceNumbers();
+                                Rectangle { Layout.fillWidth: true; height: 1; color: "#eee" }
 
-                        // Если автоматика не сработала, принудительно масштабируем по всем сериям:
-                        if (chart.count > 0) {
-                            chart.zoomReset(); // Сброс зума, чтобы увидеть все данные
+                                // Канал A
+                                Text { text: "Канал A (Сплошной):"; color: getSensorColor(root.currentIndex); font.bold: true }
+                                RowLayout {
+                                    Text { text: "Коэфф:"; color: "#555" }
+                                    Text {
+                                        text: root.currentStats ? "x" + root.currentStats.kA.toFixed(4) : ""
+                                        font.bold: true
+                                    }
+                                }
+                                Text {
+                                    text: "Среднее сырое: " + (root.currentStats ? root.currentStats.rawA.toFixed(1) : "")
+                                    font.pixelSize: 11; color: "#666"
+                                }
+
+                                Item { height: 8; width: 1 }
+
+                                // Канал B
+                                Text { text: "Канал B (Пунктир):"; color: Qt.lighter(getSensorColor(root.currentIndex), 1.5); font.bold: true }
+                                RowLayout {
+                                    Text { text: "Коэфф:"; color: "#555" }
+                                    Text {
+                                        text: root.currentStats ? "x" + root.currentStats.kB.toFixed(4) : ""
+                                        font.bold: true
+                                    }
+                                }
+                                Text {
+                                    text: "Среднее сырое: " + (root.currentStats ? root.currentStats.rawB.toFixed(1) : "")
+                                    font.pixelSize: 11; color: "#666"
+                                }
+                            }
+                            Item { Layout.fillHeight: true }
                         }
                     }
                 }
-
-                // Tooltip пришлось убрать в C++ версии, так как series создаются динамически,
-                // но можно вернуть, подключив сигналы внутри createSeries
             }
         }
     }
@@ -168,51 +212,34 @@ Rectangle {
         chart.removeAllSeries();
         var isCorrected = (root.viewMode === "corrected");
 
-        // --- РЕЖИМ: ВСЕ ДАТЧИКИ ---
         if(currentIndex === -1) {
             var count = sensorModel.rowCount();
-            for(var i=0; i<count; i++) {
+            for(var i=0; i < count; i++) {
                 var idx = sensorModel.index(i,0);
-                var sName = sensorModel.data(idx, 258); // NameRole
+                var sName = sensorModel.data(idx, 258);
 
-                // 1. Создаем пустую серию
                 var s = chart.createSeries(ChartView.SeriesTypeLine, sName, axisX, axisY);
                 s.color = getSensorColor(i);
                 s.width = 2;
-
-                // 2. Отправляем серию в C++ на заполнение
-                // Это происходит МГНОВЕННО (нет цикла в JS)
                 sensorModel.fillSeries(s, i, isCorrected, "A");
             }
-        }
-        // --- РЕЖИМ: ОДИН ДАТЧИК ---
-        else {
-            var idx2 = sensorModel.index(currentIndex, 0);
-            var sName2 = sensorModel.data(idx2, 258);
-
-            // Канал A
+        } else {
             var sA = chart.createSeries(ChartView.SeriesTypeLine, "Канал A", axisX, axisY);
             sA.color = getSensorColor(currentIndex);
-            sA.width = 2;
+            sA.width = 3;
             sensorModel.fillSeries(sA, currentIndex, isCorrected, "A");
 
-            // Канал B
             var sB = chart.createSeries(ChartView.SeriesTypeLine, "Канал B", axisX, axisY);
             sB.color = Qt.lighter(sA.color, 1.5);
-            sB.width = 2;
+            sB.width = 3;
             sB.style = Qt.DashLine;
             sensorModel.fillSeries(sB, currentIndex, isCorrected, "B");
         }
 
-        // Автомасштабирование осей
-        // (Для идеальной скорости лучше считать Min/Max в C++ и отдавать сюда,
-        // но ChartView сам умеет подстраиваться, если ему не мешать, или можно установить фиксированные)
-        //axisX.applyNiceNumbers();
-        //axisY.applyNiceNumbers();
+        // Запрашиваем статистику для правой панели
+        root.currentStats = sensorModel.getSensorStats(currentIndex);
     }
 
     Component.onCompleted: updateTimer.start()
     Timer { id: updateTimer; interval: 200; onTriggered: updateChart() }
-
-
 }
