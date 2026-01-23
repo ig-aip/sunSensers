@@ -29,4 +29,4 @@ target_link_libraries(SolarSensors PRIVATE
 )
 
 # Копируем Main.qml и results.txt в папку сборки
-file(COPY Main.qml results.txt DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY Main.qml  DESTINATION ${CMAKE_BINARY_DIR})

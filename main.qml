@@ -195,14 +195,13 @@ Rectangle {
                                     Text {
                                         text: root.currentStats ? formatVal(root.currentStats.pA, 1, "", "%") : ""
                                         font.bold: true
-                                        color: (root.currentStats && root.currentStats.pA > 0) ? "red" : "green"
+                                        color: (!root.currentStats || root.currentStats.pA >= 15) ? "red" : ((root.currentStats.pA >= 10) ? "orange" : "green")
                                     }
                                 }
                                 Text {
-                                    text: "Среднее сырое: " + (root.currentStats ? formatVal(root.currentStats.rawA, 1) : "")
+                                    text: "Среднее сырое: " + (root.currentStats ? formatVal(root.currentStats.avgRawA, 1) : "")
                                     font.pixelSize: 11; color: "#666"
                                 }
-
                                 Item { height: 8; width: 1 }
 
                                 // Канал B
@@ -219,11 +218,11 @@ Rectangle {
                                     Text {
                                         text: root.currentStats ? formatVal(root.currentStats.pB, 1, "", "%") : ""
                                         font.bold: true
-                                        color: (root.currentStats && root.currentStats.pB > 0) ? "red" : "green"
+                                        color: (!root.currentStats || root.currentStats.pB >= 15) ? "red" : ((root.currentStats.pB >= 10) ? "orange" : "green")
                                     }
                                 }
                                 Text {
-                                    text: "Среднее сырое: " + (root.currentStats ? formatVal(root.currentStats.rawB, 1) : "")
+                                    text: "Среднее сырое: " + (root.currentStats ? formatVal(root.currentStats.avgRawB, 1) : "")
                                     font.pixelSize: 11; color: "#666"
                                 }
                             }

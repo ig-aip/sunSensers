@@ -445,7 +445,8 @@ void SensorModel::exportToCsv(const QString &fileUrl) {
     qInfo() << "Full CSV Export completed:" << path;
 }
 
-// СТАТИСТИКА (С расчет погрешности pA, pB)
+
+
 QVariantMap SensorModel::getSensorStats(int index) {
     QVariantMap map;
     if (index < 0 || index >= m_sensors.size()) {
@@ -467,14 +468,19 @@ QVariantMap SensorModel::getSensorStats(int index) {
     map["kA"] = s.kA;
     map["kB"] = s.kB;
     // Считаем погрешности в % для QML
-    map["pA"] = (s.kA - 1.0) * 100.0;
-    map["pB"] = (s.kB - 1.0) * 100.0;
+    map["pA"] = qAbs(s.kA - 1.0) * 100.0;
+    map["pB"] = qAbs(s.kB - 1.0) * 100.0;
 
-    double ra = 0, rb = 0;
+    double avgRawA = 0, avgRawB = 0;
     if (!s.data.isEmpty()) {
-        for(const auto& p : s.data) { ra += p.v1; rb += p.v2; }
-        ra /= s.data.size(); rb /= s.data.size();
+        double sumRawA = 0, sumRawB = 0;
+        for (const DataPoint& data : s.data) {
+            sumRawA += data.v1;
+            sumRawB += data.v2;
+        }
+        avgRawA = sumRawA / s.data.size();
+        avgRawB = sumRawB / s.data.size();
     }
-    map["rawA"] = ra; map["rawB"] = rb;
+    map["avgRawA"] = avgRawA; map["avgRawB"] = avgRawB;
     return map;
 }

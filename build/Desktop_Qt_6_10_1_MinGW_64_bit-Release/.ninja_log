@@ -1,9 +1,0 @@
-# ninja log v6
-16	845	7908674274608290	SolarSensors_autogen/timestamp	fb13be301a4d2fe4
-16	845	7908674274608290	SolarSensors_autogen/mocs_compilation.cpp	fb13be301a4d2fe4
-16	845	7908674274608290	C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/SolarSensors_autogen/timestamp	fb13be301a4d2fe4
-16	845	7908674274608290	C:/Users/User/Desktop/1/sunSensers/build/Desktop_Qt_6_10_1_MinGW_64_bit-Release/SolarSensors_autogen/mocs_compilation.cpp	fb13be301a4d2fe4
-857	4242	7908674275695641	CMakeFiles/SolarSensors.dir/SolarSensors_autogen/mocs_compilation.cpp.obj	3f2cf462a6f28340
-860	4693	7908674275725298	CMakeFiles/SolarSensors.dir/main.cpp.obj	c54be231f4240e2e
-863	6880	7908674275755206	CMakeFiles/SolarSensors.dir/sensormodel.cpp.obj	e9053c49aecc4be
-6880	7078	7908674335924409	SolarSensors.exe	60a278bac1edb40a
